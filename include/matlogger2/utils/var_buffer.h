@@ -86,11 +86,13 @@ inline bool XBot::VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<Deriv
         return false;
     }
 
-    static_assert(Derived::ColsAtCompileTime == 1, 
-                  "add() method only supports elements with single column \
-                   consider wrapping your data into an Eigen::Map<Eigen::VectorXd> object");
+    double * col_ptr = _buf.data() + _write_idx*_buf.rows();
     
-    _buf.col(_write_idx) = data.template cast<double>();
+    Eigen::Map<Eigen::MatrixXd> elem_map(col_ptr, 
+                                         data.rows(), data.cols());
+    
+    elem_map.noalias() = data.template cast<double>();
+
     _write_idx++;
     
     return true;

@@ -302,11 +302,6 @@ MatLogger2::~MatLogger2()
 {
     printf("%s\n", __PRETTY_FUNCTION__);
     
-    if(_notify_logger_finished)
-    {
-        _notify_logger_finished();
-    }
-    
     set_on_data_available_callback(VariableBuffer::CallbackType());
     
     while(!flush_to_queue_all())
@@ -327,12 +322,8 @@ MatLogger2::~MatLogger2()
 
 #define ADD_EXPLICIT_INSTANTIATION(EigenType) \
 template bool MatLogger2::add(const std::string&, const Eigen::MatrixBase<EigenType>&); \
-template bool MatLogger2::add(const std::string&, const Eigen::Matrix<EigenType::Scalar, EigenType::RowsAtCompileTime, EigenType::ColsAtCompileTime>&); \
 template bool VariableBuffer::add_elem(const Eigen::MatrixBase<EigenType>&); \
 template bool VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<EigenType>&);
-
-#define ADD_EXPLICIT_INSTANTIATION_MAT(EigenType) \
-template bool MatLogger2::add(const std::string&, const Eigen::Matrix<EigenType::Scalar, EigenType::RowsAtCompileTime, EigenType::ColsAtCompileTime>&); \
 
 #define ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(Scalar) \
 template bool MatLogger2::add(const std::string&, const std::vector<Scalar>&); \
@@ -344,15 +335,15 @@ using Vector6 = Eigen::Matrix<Scalar,6,1>;
 template <typename Scalar>
 using MapX = Eigen::Map<Eigen::Matrix<Scalar, -1, 1>>;
 
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::MatrixXd)
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::Matrix2d)
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::Matrix3d)
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::Matrix4d)
+ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXd)
+ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2d)
+ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3d)
+ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4d)
 
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::MatrixXf)
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::Matrix2f)
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::Matrix3f)
-ADD_EXPLICIT_INSTANTIATION_MAT(Eigen::Matrix4f)
+ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXf)
+ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2f)
+ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3f)
+ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4f)
 
 ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXd)
 ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2d)

@@ -26,7 +26,7 @@ namespace XBot
 
 struct MatLoggerManager::Impl
 {
-    std::vector<std::pair<MatLogger2::WeakPtr, std::unique_ptr<std::mutex>>> _loggers;
+    std::vector<MatLogger2::WeakPtr> _loggers;
     
     void flush_thread_main();
     int  flush_available_data_all();
@@ -77,8 +77,7 @@ void MatLoggerManager::Impl::on_logger_finished(int logger_idx)
 
 void MatLoggerManager::Impl::disconnect(int logger_idx)
 {
-    std::lock_guard<std::mutex> lock(*(_loggers.at(logger_idx).second));
-    _loggers.at(logger_idx).first.reset();
+    _loggers.at(logger_idx).reset();
     printf("Disconnected logger %d\n", logger_idx);
 }
 
@@ -97,9 +96,23 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
         return false;
     }
     
+    auto predicate = [logger](const auto& elem)
+                     {
+                         bool ret = false;
+                         auto sp = elem.lock();
+                         
+                         if(sp && sp.get() == logger.get())
+                         {
+                             ret = true;
+                         }
+                         
+                         return ret;
+                         
+                     };
+    
     auto it = std::find_if(impl()._loggers.begin(), 
-                        impl()._loggers.end(), 
-                        [logger](const auto& elem){return elem.first.get() == logger.get();});
+                           impl()._loggers.end(), 
+                           predicate);
     
     if(it != impl()._loggers.end())
     {
@@ -109,18 +122,23 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
     
     namespace pl = std::placeholders;
     
-    logger->set_on_data_available_callback(std::bind(&Impl::on_block_available, _impl.get(),
-                                                     pl::_1, pl::_2)
-                                           );
+    std::weak_ptr<MatLoggerManager> self = shared_from_this();
+    
+    logger->set_on_data_available_callback(
+        [this, self](int bytes, int n_free_blocks)
+        {
+            if(!self.expired())
+            {
+                impl().on_block_available(bytes, n_free_blocks);
+            }
+        }
+                                        );
     
     int logger_idx = impl()._loggers.size();
     
     logger->set_on_stop_callback(std::bind(&Impl::on_logger_finished, _impl.get(), logger_idx));
     
-    impl()._loggers.emplace_back(std::piecewise_construct, 
-                                 std::forward_as_tuple(logger),
-                                 std::forward_as_tuple(new std::mutex)
-                                 );
+    impl()._loggers.emplace_back(logger);
     
     return true;
 }
@@ -138,14 +156,14 @@ void MatLoggerManager::start_thread()
 int MatLoggerManager::Impl::flush_available_data_all()
 {
     int bytes = 0;
-    for(auto& logger : _loggers)
+    for(auto& logger_weak : _loggers)
     {
-        std::lock_guard<std::mutex> lock(*(logger.second));
-        if(!logger.first)
+        MatLogger2::Ptr logger = logger_weak.lock();
+        if(!logger)
         {
             continue;
         }
-        bytes += logger.first->flush_available_data();
+        bytes += logger->flush_available_data();
     }
     return bytes;
 }
@@ -154,7 +172,6 @@ int MatLoggerManager::Impl::flush_available_data_all()
 void MatLoggerManager::Impl::flush_thread_main()
 {
     uint64_t total_bytes = 0;
-    uint64_t bytes_last = 0;
     double work_time_total = 0;
     double sleep_time_total = 0;
     

@@ -129,6 +129,9 @@ TEST_F(TestApi, usageExample)
     printf("Written %d MB in %d sec (write rata = %.1f GB/s, last data = %d)\n", 
            int(bytes*1e-6), sec, bytes/write_time*1e-9, i-1);
     
+    
+    loggers.clear();
+    
 }
 
 

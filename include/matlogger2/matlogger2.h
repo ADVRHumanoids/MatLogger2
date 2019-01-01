@@ -34,9 +34,6 @@ namespace XBot
         template <typename Derived>
         bool add(const std::string& var_name, const Eigen::MatrixBase<Derived>& data);
         
-        template <typename Scalar, int Rows, int Cols>
-        bool add(const std::string& var_name, const Eigen::Matrix<Scalar, Rows, Cols>& data);
-        
         template <typename Scalar>
         bool add(const std::string& var_name, const std::vector<Scalar>& data);
         
@@ -89,13 +86,6 @@ inline bool XBot::MatLogger2::add(const std::string& var_name, const Eigen::Matr
     
     return true;
     
-}
-
-template <typename Scalar, int Rows, int Cols>
-inline bool XBot::MatLogger2::add(const std::string& var_name, const Eigen::Matrix<Scalar, Rows, Cols>& data)
-{
-    Eigen::Map<const Eigen::Matrix<Scalar,-1,1>> map(data.data(), data.size());
-    return add(var_name, map);
 }
 
 template <typename Scalar>

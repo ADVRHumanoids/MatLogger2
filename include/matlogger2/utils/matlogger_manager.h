@@ -7,7 +7,7 @@ namespace XBot
 {
     class MatLogger2;
     
-    class MatLoggerManager : std::enable_shared_from_this<MatLoggerManager>
+    class MatLoggerManager : public std::enable_shared_from_this<MatLoggerManager>
     {
         
     public:
