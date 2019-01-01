@@ -25,7 +25,9 @@ namespace XBot
         
         int flush_available_data();
         
-        void start_thread();
+        std::function<void(void)> get_flush_thread_main() const;
+        
+        void start_flush_thread();
         
         ~MatLoggerManager();
         
@@ -34,7 +36,7 @@ namespace XBot
         
         MatLoggerManager();
         
-        class Impl;
+        struct Impl;
         
         Impl& impl();
         

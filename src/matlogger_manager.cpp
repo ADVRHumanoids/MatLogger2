@@ -5,6 +5,7 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
+#include <atomic>
 
 namespace
 {
@@ -31,14 +32,13 @@ struct MatLoggerManager::Impl
     void flush_thread_main();
     int  flush_available_data_all();
     void on_block_available(int bytes, int n_free_blocks);
-    void on_logger_finished(int logger_idx);
-    void disconnect(int logger_idx);
+    
+    int _available_bytes;
     
     std::unique_ptr<std::thread> _flush_thread;
     std::mutex _cond_mutex;
     std::condition_variable _cond;
-    bool _flush_thread_wake_up;
-    int _available_bytes;
+    std::atomic<bool> _flush_thread_wake_up;
     std::atomic<bool> _flush_thread_run;
     
     Impl();
@@ -61,26 +61,14 @@ MatLoggerManager::Impl& MatLoggerManager::impl()
 
 void MatLoggerManager::Impl::on_block_available(int bytes, int n_free_blocks)
 {
-    std::lock_guard<std::mutex> lock(_cond_mutex);
     _available_bytes += bytes;
     if(_available_bytes > 30e6 || n_free_blocks < VariableBuffer::NUM_BLOCKS / 2)
     {
+        _available_bytes = 0;
         _flush_thread_wake_up = true;
         _cond.notify_one();
     }
 }
-
-void MatLoggerManager::Impl::on_logger_finished(int logger_idx)
-{
-    disconnect(logger_idx);
-}
-
-void MatLoggerManager::Impl::disconnect(int logger_idx)
-{
-    _loggers.at(logger_idx).reset();
-    printf("Disconnected logger %d\n", logger_idx);
-}
-
 
 MatLoggerManager::MatLoggerManager()
 {
@@ -136,14 +124,12 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
     
     int logger_idx = impl()._loggers.size();
     
-    logger->set_on_stop_callback(std::bind(&Impl::on_logger_finished, _impl.get(), logger_idx));
-    
     impl()._loggers.emplace_back(logger);
     
     return true;
 }
 
-void MatLoggerManager::start_thread()
+void MatLoggerManager::start_flush_thread()
 
 {
     impl()._flush_thread_run = true;
@@ -184,11 +170,13 @@ void MatLoggerManager::Impl::flush_thread_main()
             total_bytes += bytes;
         });
         
+        printf("Worked for %.2f sec (%.1f MB flushed)..", 
+               work_time, bytes*1e-6);
+        printf("..average load is %.2f \n", 1.0/(1.0+sleep_time_total/work_time_total));
         
         std::unique_lock<std::mutex> lock(_cond_mutex);
-        _available_bytes -= bytes;
         double sleep_time = measure_sec([this, &lock](){
-            _cond.wait(lock, [this]{ return _flush_thread_wake_up; });
+            _cond.wait(lock, [this]{ return _flush_thread_wake_up.load(); });
         });
         
         _flush_thread_wake_up = false;
@@ -196,11 +184,6 @@ void MatLoggerManager::Impl::flush_thread_main()
         
         work_time_total += work_time;
         sleep_time_total += sleep_time;
-        
-        printf("Worked for %.2f sec, slept for %.2f sec (%.1f MB flushed)\n", 
-               work_time, sleep_time, bytes*1e-6);
-        
-        printf("Average load is %.2f \n", 1.0/(1.0+sleep_time_total/work_time_total));
         
     }
     

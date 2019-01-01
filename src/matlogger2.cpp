@@ -161,12 +161,6 @@ void MatLogger2::set_on_data_available_callback(VariableBuffer::CallbackType cal
     _on_block_available = callback;
 }
 
-void MatLogger2::set_on_stop_callback(std::function< void(void) > stop_callback)
-{
-    _notify_logger_finished = stop_callback;
-}
-
-
 bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buffer_size)
 {
     std::lock_guard<std::mutex> lock(_vars_mutex);    

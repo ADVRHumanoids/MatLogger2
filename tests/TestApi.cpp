@@ -62,7 +62,7 @@ TEST_F(TestApi, usageExample)
         appender->add_logger(loggers.back());
     }
 
-    appender->start_thread();
+    appender->start_flush_thread();
     
     std::vector<std::string> vars;
     const int VAR_SIZE = 25;

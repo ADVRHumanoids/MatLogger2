@@ -27,7 +27,6 @@ namespace XBot
         static Ptr MakeLogger(Args... args);
         
         void set_on_data_available_callback(VariableBuffer::CallbackType callback);
-        void set_on_stop_callback(std::function<void(void)> stop_callback);
     
         bool create(const std::string& var_name, int rows, int cols, int buffer_size = -1);
         
@@ -52,7 +51,6 @@ namespace XBot
   
         std::mutex _vars_mutex;
         std::unordered_map<std::string, VariableBuffer> _vars;
-        std::function<void(void)> _notify_logger_finished;
         VariableBuffer::CallbackType _on_block_available;
         
         std::string _file_name;
