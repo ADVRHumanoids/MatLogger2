@@ -9,6 +9,21 @@
 namespace XBot 
 {
 
+    /**
+    * @brief The VariableBuffer class implements a memory buffer for
+    * a single logged variable. This is an internal library component,
+    * and it is not meant for direct use.
+    * 
+    * The memory buffer is splitted into a fixed number of blocks.
+    * The VariableBuffer keeps an internal lockfree queue of such blocks,
+    * plus another one that is used for writing logged data samples.
+    * When this block is full, it is pushed into the queue.
+    * 
+    * Because the lockfree queue is of the Single-Producer-Single-Consumer
+    * type, a single thread is allowed to call add_elem and read_block,
+    * concurrently.
+    * 
+    */
     class VariableBuffer 
     {
     
@@ -16,19 +31,58 @@ namespace XBot
         
         typedef std::function<void(int, int)> CallbackType;
         
+        /**
+        * @brief Constructor
+        * 
+        * @param name Variable name
+        * @param dim_rows Sample rows number
+        * @param dim_cols Sample columns number
+        * @param block_size Number of samples that make up a block
+        */
         VariableBuffer(std::string name, int dim_rows, int dim_cols, int block_size);
         
+        /**
+        * @brief Sets a callback that is used to notify that a new block
+        * has been pushed into the queue.
+        */
         void set_on_block_available(CallbackType callback);
         
         const std::string& get_name() const;
         
         std::pair<int, int> get_dimension() const;
         
+        /**
+        * @brief Add an element to the buffer. If there is no space inside the 
+        * current block, this is pushed into the queue by calling flush_to_queue().
+        * 
+        * Only a single producer thread is allowed to concurrently call this
+        * method.
+        * 
+        * @param Derived Data type
+        * @param data Data value
+        * @return False if data could not be saved inside the buffer
+        */
         template <typename Derived>
         bool add_elem(const Eigen::MatrixBase<Derived>& data);
         
+        /**
+        * @brief Reads a whole block from the queue, if one is available.
+        * 
+        * Only a single consumer thread is allowed to concurrently call this 
+        * method.
+        * 
+        * @param data Matrix which is filled with the read block (unless the function returns false)
+        * @param valid_elements Number of valid elements contained in the block. This means that only 
+        * data.leftCols(valid_elements) contains valid data.
+        * @return True if valid_elements > 0
+        */
         bool read_block(Eigen::MatrixXd& data, int& valid_elements);
         
+        /**
+        * @brief Writes current block to the queue.
+        * 
+        * @return True on success (queue was not full)
+        */
         bool flush_to_queue();
         
         static const int NUM_BLOCKS = 40;

@@ -25,8 +25,6 @@ namespace XBot
         
         int flush_available_data();
         
-        std::function<void(void)> get_flush_thread_main() const;
-        
         void start_flush_thread();
         
         ~MatLoggerManager();
