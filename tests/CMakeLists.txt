@@ -3,7 +3,9 @@ include(ExternalProject)
 
 project(matlogger2_tests LANGUAGES C CXX VERSION 1.0.0)
 
+
 add_compile_options("-std=c++11")
+# add_compile_options("-fsanitize=thread")
 
 # compite GTest
 find_package(GTest)

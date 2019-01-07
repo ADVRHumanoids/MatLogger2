@@ -1,6 +1,8 @@
 #include <matlogger2/matlogger2.h>
 #include <matio-cmake/matio/src/matio.h>
 #include <iostream>
+#include <boost/algorithm/string.hpp>
+
 
 using namespace XBot;
 
@@ -65,6 +67,7 @@ VariableBuffer::VariableBuffer(std::string name,
     _rows(dim_rows),
     _cols(dim_cols)
 {
+    // allocate memory for the whole queue
     _queue.reset(_current_block);
 }
 
@@ -85,6 +88,9 @@ int VariableBuffer::BufferBlock::get_size_bytes() const
 
 bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
 {
+    // this function is not allowed to use class members, 
+    // except consuming elements from _queue
+    
     int ret = 0;
     
     _queue.consume_one
@@ -103,24 +109,32 @@ bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
 
 bool VariableBuffer::flush_to_queue()
 {
+    // no valid elements in the current block, we just return true
     if(_current_block.get_valid_elements() == 0)
     {
         return true;
     }
     
+    // queue is full, return false and print to stderr
     if(!_queue.push(_current_block))
     {
         fprintf(stderr, "Failed to push block for variable '%s'\n", _name.c_str());
         return false;
     }
+    // we managed to push a block into the queue
     
+    // reset current block, so that new elements can be written to it
     _current_block.reset();
     
+    // if a callback was registered, we call it
     if(_on_block_available)
     {
-        _on_block_available(_current_block.get_size_bytes(), 
-                            _queue.write_available()
-                            );
+        BufferInfo buf_info;
+        buf_info.new_available_bytes = _current_block.get_size_bytes();
+        buf_info.variable_free_space = _queue.write_available() / (double)VariableBuffer::NUM_BLOCKS;
+        buf_info.variable_name = _name.c_str();
+        
+        _on_block_available(buf_info);
     }
     
     return true;
@@ -133,16 +147,57 @@ const std::string& VariableBuffer::get_name() const
     return _name;
 }
 
+namespace{
+    
+    std::string get_file_extension(std::string file)
+    {
+        std::vector<std::string> token_list;
+        boost::split(token_list, file, [](char c){return c == '.';});
+        
+        if(token_list.size() > 1)
+        {
+            return token_list.back();
+        }
+        
+        return "";
+    }
+    
+    std::string date_time_as_string()
+    {
+        time_t rawtime;
+        struct tm * timeinfo;
+        char buffer [80];
+        memset(buffer, 0, 80*sizeof(buffer[0]));
 
+        std::time(&rawtime);
+        timeinfo = localtime(&rawtime);
+
+        strftime(buffer, 80, "%Y_%m_%d__%H_%M_%S", timeinfo);
+        
+        return std::string(buffer);
+    }
+    
+}
 
 MatLogger2::MatLogger2(std::string file):
     _file_name(file),
     _mat_file(nullptr)
 {
-    if(!_mat_file)
+    // get the file extension, or empty string if there is none
+    std::string extension = get_file_extension(file);
+    
+    if(extension == "") // no extension, append date/time + .mat
     {
-        _mat_file = Mat_CreateVer(_file_name.c_str(), nullptr, MAT_FT_MAT73);
+        _file_name += "__" + date_time_as_string() + ".mat";
     }
+    else if(extension != "mat") // extension different from .mat, error
+    {
+        throw std::invalid_argument("MAT-file name should either have .mat \
+extension, or no extension at all");
+    }
+    
+    // create mat file (erase if existing already)
+    _mat_file = Mat_CreateVer(_file_name.c_str(), nullptr, MAT_FT_MAT73);
     
     if(!_mat_file)
     {
@@ -152,6 +207,7 @@ MatLogger2::MatLogger2(std::string file):
 
 void MatLogger2::set_on_data_available_callback(VariableBuffer::CallbackType callback)
 {
+    std::lock_guard<std::mutex> lock(_vars_mutex);    
     
     for(auto& p : _vars)
     {
@@ -163,8 +219,18 @@ void MatLogger2::set_on_data_available_callback(VariableBuffer::CallbackType cal
 
 bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buffer_size)
 {
+    
+    if(!(rows > 0 && cols > 0 && buffer_size > 0))
+    {
+        fprintf(stderr, "Unable to create variable '%s': invalid parameters \
+(rows=%d, cols=%d, buf_size=%d)\n",
+                var_name.c_str(), rows, cols, buffer_size);
+        return false;
+    }
+    
     std::lock_guard<std::mutex> lock(_vars_mutex);    
     
+    // check if variable is already defined (in which case, return false)
     auto it = _vars.find(var_name);
     
     if(it != _vars.end())
@@ -173,21 +239,20 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
         return false;
     }
     
-    if(buffer_size <= 0)
-    {
-        buffer_size = 1e4;
-    }
-    
+    // compute block size from required buffer_size and number of blocks in
+    // queue
     int block_size = buffer_size / VariableBuffer::NUM_BLOCKS;
     
     printf("Created variable '%s' (%d blocks, %d elem each)\n", 
            var_name.c_str(), VariableBuffer::NUM_BLOCKS, block_size);
     
+    // insert VariableBuffer object inside the _vars map
     _vars.emplace(std::piecewise_construct,
                   std::forward_as_tuple(var_name),
                   std::forward_as_tuple(var_name, rows, cols, block_size));
     
-    
+    // set callback: this will be called whenever a new data block is 
+    // available in the variable queue
     _vars.at(var_name).set_on_block_available(_on_block_available);
     
     return true;
@@ -195,14 +260,17 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
 
 bool MatLogger2::add(const std::string& var_name, double data)
 {
+    // search variable
     auto it = _vars.find(var_name);
     
+    // check for existance
     if(it == _vars.end())
     {
         fprintf(stderr, "Variable '%s' does not exist\n", var_name.c_str());
         return false;
     }
     
+    // turn scalar into a 1x1 matrix, and add it to the buffer
     Eigen::Matrix<double, 1, 1> elem(data);
     it->second.add_elem(elem);
     
@@ -212,7 +280,20 @@ bool MatLogger2::add(const std::string& var_name, double data)
 
 namespace
 {
-    matvar_t* create_var(const double * data, int r, int c, int s, const char* name)
+    /**
+    * @brief Utility function that creates Mat variable from raw buffers,
+    * without copying it
+    * 
+    * @param data pointer to data
+    * @param r rows
+    * @param c cols
+    * @param s slices
+    * @param name name
+    * @return pointer to the constructed variable (must be Mat_VarFree-ed by 
+the user
+    */
+    matvar_t* create_var(const double * data, int r, int c, int s, const char* 
+name)
     {
         int n_dims = s == 1 ? 2 : 3;
         std::size_t dims[3];
@@ -232,50 +313,66 @@ namespace
 
 int MatLogger2::flush_available_data()
 {
+    // number of flushed bytes is returned on exit
     int bytes = 0;
+    
+    // acquire exclusive access to the _vars object
     std::lock_guard<std::mutex> lock(_vars_mutex);    
     for(auto& p : _vars)
     {
         Eigen::MatrixXd block;
         int valid_elems = 0;
+        
+        // while there are blocks available for reading..
         while(p.second.read_block(block, valid_elems))
         {
+            // get rows & cols for a single sample
             auto dims = p.second.get_dimension();
+            
             int rows = -1;
             int cols = -1;
             int slices = -1;
             bool is_vector = false;
             
-            if(dims.second == 1)
+            
+            if(dims.second == 1) // the variable is a vector
             {
                 rows = dims.first;
                 cols = valid_elems;
                 slices = 1;
                 is_vector = true;
             }
-            else
+            else // the variable is a matrix
             {
                 rows = dims.first;
                 cols = dims.second;
                 slices = valid_elems;
                 is_vector = false;
             }
-                
+        
+            // create mat variable
             matvar_t * var = create_var(block.data(),
                                         rows, cols, slices, 
                                         p.second.get_name().c_str()); 
             
+            // if vector we append along columns, otherwise along slices
             int dim_append = is_vector ? 2 : 3;
-            int ret = Mat_VarWriteAppend(_mat_file, var, MAT_COMPRESSION_NONE, dim_append);
+            int ret = Mat_VarWriteAppend(_mat_file, 
+                                         var, 
+                                         MAT_COMPRESSION_NONE, 
+                                         dim_append); // TBD compression from 
+                                                      // user
             
             if(ret != 0)
             {
                 fprintf(stderr, "Mat_VarWriteAppend failed with code %d", ret);
             }
 
+            // free mat variable
             Mat_VarFree(var);
             
-            bytes += block.size() * sizeof(double);
+            // update bytes computation
+            bytes += block.rows() * valid_elems * sizeof(double);
         }
     }
     
@@ -294,19 +391,28 @@ bool MatLogger2::flush_to_queue_all()
 
 MatLogger2::~MatLogger2()
 {
+    /* inside this constructor, we have the guarantee that the flusher thread
+    * (if running) is not using this object
+    */
+    
+    
     printf("%s\n", __PRETTY_FUNCTION__);
     
+    // de-register any callback
     set_on_data_available_callback(VariableBuffer::CallbackType());
     
+    // flush to queue and then flush to disk till all buffers are empty
     while(!flush_to_queue_all())
     {
         flush_available_data();
     }
     
+    // flush to disk remaining data from queues
     while(flush_available_data() > 0);
     
     printf("Flushed all data for file '%s'\n", _file_name.c_str());
     
+    // close MAT-file
     Mat_Close(_mat_file);
 
     _mat_file = nullptr;

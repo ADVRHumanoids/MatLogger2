@@ -3,6 +3,8 @@
 #include <matlogger2/utils/matlogger_manager.h>
 #include <signal.h>
 
+#include <malloc_finder/malloc_finder_definitions.hpp>
+
 namespace
 {
     template <typename Func>
@@ -40,24 +42,19 @@ protected:
      
 };
 
-volatile sig_atomic_t run_ok = 1;
-
-void sig_handler(int sig)
-{
-    run_ok = 0;
-}
-
 TEST_F(TestApi, usageExample)
 {
-    signal(SIGINT, sig_handler);
-    
     
     std::vector<XBot::MatLogger2::Ptr> loggers;
     auto appender = XBot::MatLoggerManager::MakeInstance();
     
     for(int i = 1; i <= 10; i++)
     {
-        std::string name = "/tmp/my_log_" + std::to_string(i) + ".mat";
+        std::string name = "/tmp/my_log_" + std::to_string(i);
+        if(i%2==0)
+        {
+            name += ".mat";
+        }
         loggers.emplace_back(XBot::MatLogger2::MakeLogger(name));
         appender->add_logger(loggers.back());
     }
@@ -86,8 +83,8 @@ TEST_F(TestApi, usageExample)
     Eigen::VectorXd data(VAR_SIZE);
     auto tic = std::chrono::high_resolution_clock::now();
     auto t_last = std::chrono::high_resolution_clock::now();
-    std::chrono::seconds test_duration(60);
-    while(run_ok)
+    std::chrono::seconds test_duration(5);
+    while(true)
     {
         for(auto v : vars)
         {
@@ -129,8 +126,80 @@ TEST_F(TestApi, usageExample)
     printf("Written %d MB in %d sec (write rata = %.1f GB/s, last data = %d)\n", 
            int(bytes*1e-6), sec, bytes/write_time*1e-9, i-1);
     
+}
+
+TEST_F(TestApi, checkTypes)
+{
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/checkTypes_logger.mat");
+    ASSERT_TRUE(logger->create("scalar_var"  , 1));
+    ASSERT_FALSE(logger->create("scalar_var" , 1));
+    ASSERT_FALSE(logger->create("invalid_var", 0));
+    ASSERT_FALSE(logger->create("invalid_var", 1, 0));
+    ASSERT_FALSE(logger->create("invalid_var", 1, 1, 0));
+    ASSERT_TRUE(logger->create("vector_var"  , 10));
+    ASSERT_TRUE(logger->create("mat_var"     , 10, 10));
     
-    loggers.clear();
+    ASSERT_TRUE(logger->add("scalar_var", (uint)  1));
+    ASSERT_TRUE(logger->add("scalar_var", (int)   1));
+    ASSERT_TRUE(logger->add("scalar_var", (float) 1));
+    ASSERT_TRUE(logger->add("scalar_var", (double)1));
+    
+    
+    
+    
+    
+    Eigen::VectorXi vector_valid_i(10);
+    Eigen::VectorXd vector_valid_d(10);
+    Eigen::VectorXf vector_valid_f(10);
+    
+    XBot::Utils::MallocFinder::Enable();
+    XBot::Utils::MallocFinder::SetThrowOnMalloc(true);
+    
+    std::cout << malloc(19) << std::endl;
+    
+    ASSERT_TRUE(logger->add("vector_var", vector_valid_i));
+    ASSERT_TRUE(logger->add("vector_var", vector_valid_f));
+    ASSERT_TRUE(logger->add("vector_var", vector_valid_d));
+    
+    XBot::Utils::MallocFinder::Disable();
+    
+    Eigen::MatrixXd matrix_valid_d(10, 10);
+    Eigen::MatrixXf matrix_valid_f(10, 10);
+    Eigen::MatrixXi matrix_valid_i(10, 10);
+    
+    ASSERT_TRUE(logger->add("vector_var", matrix_valid_d.col(0)));
+    ASSERT_TRUE(logger->add("vector_var", matrix_valid_f.col(0)));
+    ASSERT_TRUE(logger->add("vector_var", matrix_valid_i.col(0)));
+    
+    ASSERT_TRUE(logger->add("vector_var", matrix_valid_d.row(0)));
+    ASSERT_TRUE(logger->add("vector_var", matrix_valid_f.row(0)));
+    ASSERT_TRUE(logger->add("vector_var", matrix_valid_i.row(0)));
+    
+    ASSERT_TRUE(logger->add("mat_var", matrix_valid_d));
+    ASSERT_TRUE(logger->add("mat_var", matrix_valid_f));
+    ASSERT_TRUE(logger->add("mat_var", matrix_valid_i));
+    
+    ASSERT_FALSE(logger->add("vector_var", matrix_valid_d));
+    ASSERT_FALSE(logger->add("vector_var", matrix_valid_f));
+    ASSERT_FALSE(logger->add("vector_var", matrix_valid_i));
+    
+    ASSERT_FALSE(logger->add("mat_var", vector_valid_i));
+    ASSERT_FALSE(logger->add("mat_var", vector_valid_f));
+    ASSERT_FALSE(logger->add("mat_var", vector_valid_d));
+    
+    ASSERT_FALSE(logger->add("invalid_var", vector_valid_i));
+    
+    std::vector<int>    stdvec_i(10);
+    std::vector<uint>   stdvec_u(10);
+    std::vector<float>  stdvec_f(10);
+    std::vector<double> stdvec_d(10);
+    
+    
+    ASSERT_TRUE(logger->add("vector_var", stdvec_i));
+    ASSERT_TRUE(logger->add("vector_var", stdvec_f));
+    ASSERT_TRUE(logger->add("vector_var", stdvec_d));
+    ASSERT_TRUE(logger->add("vector_var", stdvec_u));
+    
     
 }
 

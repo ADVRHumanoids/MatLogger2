@@ -7,7 +7,21 @@ namespace XBot
 {
     class MatLogger2;
     
-    class MatLoggerManager : public std::enable_shared_from_this<MatLoggerManager>
+    /**
+    * @brief The MatLoggerManager class allows to flush data to disk from
+    * multiple MatLogger2 loggers at once, both synchronously and from a 
+    * separate flusher thread.
+    * 
+    * Construction:
+    * use the factory method MakeInstance()
+    * 
+    * Usage:
+    * register instances of MatLogger2 type with the add_logger() method.
+    * Then, either call flush_available_data() in a loop, or 
+call start_flush_thread()
+    */
+    class MatLoggerManager : public 
+std::enable_shared_from_this<MatLoggerManager>
     {
         
     public:
@@ -15,11 +29,7 @@ namespace XBot
         typedef std::weak_ptr<MatLoggerManager> WeakPtr;
         typedef std::shared_ptr<MatLoggerManager> Ptr;
         
-        template <typename... Args>
-        static Ptr MakeInstance(Args... args)
-        {
-            return Ptr(new MatLoggerManager(args...));
-        }
+        static Ptr MakeInstance();
         
         bool add_logger(std::shared_ptr<MatLogger2> logger);
         

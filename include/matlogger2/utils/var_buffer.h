@@ -19,6 +19,10 @@ namespace XBot
     * plus another one that is used for writing logged data samples.
     * When this block is full, it is pushed into the queue.
     * 
+    * Apart from the lockfree queue, no other data is shared between add_elem()
+    * and read_block(). So, they can be called concurrently without further 
+    * synchronization.
+    * 
     * Because the lockfree queue is of the Single-Producer-Single-Consumer
     * type, a single thread is allowed to call add_elem and read_block,
     * concurrently.
@@ -29,7 +33,19 @@ namespace XBot
     
     public:
         
-        typedef std::function<void(int, int)> CallbackType;
+        struct BufferInfo
+        {
+            // name of the variable that the new data refers to
+            const char * variable_name;
+            
+            // bytes available to be flushed to disk
+            int new_available_bytes;
+            
+            // free space available in buffer (0..1, 0 indicates full buffer)
+            double variable_free_space;
+        };
+        
+        typedef std::function<void(BufferInfo)> CallbackType;
         
         /**
         * @brief Constructor
@@ -79,7 +95,8 @@ namespace XBot
         bool read_block(Eigen::MatrixXd& data, int& valid_elements);
         
         /**
-        * @brief Writes current block to the queue.
+        * @brief Writes current block to the queue. If a callback was registered through
+        * set_on_block_available(), it is called on success.
         * 
         * @return True on success (queue was not full)
         */
@@ -89,39 +106,85 @@ namespace XBot
         
     private:
         
+        /**
+        * @brief The BufferBlock class represents a block of memory that
+        * can hold block_size samples of a logged variable, stored
+        * column-wise.
+        */
         class BufferBlock
         {
             
         public:
             
             BufferBlock();
+            
+            /**
+            * @param dim number of elements of the sample (rows*cols)
+            * @param block_size number of samples that the block will hold
+            */
             BufferBlock(int dim, int block_size);
             
+            
+            /**
+            * @brief Add one sample to the block, unless the block is full
+            * 
+            * @param Derived Eigen-type of the sample
+            * @param data Sample to be added
+            * @return True on success, false if the block is full
+            */
             template <typename Derived>
             bool add(const Eigen::MatrixBase<Derived>& data);
+            
+            
+            /**
+            * @brief Reset the buffer to an empty condition.
+            */
             void reset();
             
+            /**
+            * @brief Returns a reference to the memory block. Note that the last
+            * columns may be invalid: only the first get_valid_elements() columns 
+            * contain valid data.
+            */
             const Eigen::MatrixXd& get_data() const;
+            
+            
+            /**
+            * @brief Number of elements that have been written to the block from
+            * when it was reset.
+            */
             int get_valid_elements() const;
+            
             int get_size() const;
             int get_size_bytes() const;
             
         private:
             
-            int _write_idx;
+            // current write index (also equals the number of valid elements)
+            int _write_idx; 
+            
+            // memory for get_size() elements, stored column-wise
             Eigen::MatrixXd _buf;
             
         };
         
+        // variable name
         std::string _name;
+        
+        // variable dimensions
         int _rows;
         int _cols;
         
         template <typename T, int N>
         using LockfreeQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<N>>;
         
+        // current block
         BufferBlock _current_block;
+        
+        // fifo spsc queue of blocks 
         LockfreeQueue<BufferBlock, NUM_BLOCKS> _queue;
+        
+        // function to be called when a block is pushed into the queue
         CallbackType _on_block_available;
         
     };
@@ -135,20 +198,26 @@ namespace XBot
 template <typename Derived>
 inline bool XBot::VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<Derived>& data)
 {
+    // check if the block is full, and return false
     if(_write_idx == get_size())
     {
         return false;
     }
 
+    // pointer to the _write_idx-th element (column of _buf)
     double * col_ptr = _buf.data() + _write_idx*_buf.rows();
     
+    // Eigen-view on the column to be written
     Eigen::Map<Eigen::MatrixXd> elem_map(col_ptr, 
                                          data.rows(), data.cols());
     
+    // cast data do double and write it to the current element
     elem_map.noalias() = data.template cast<double>();
 
+    // increase _write_idx 
     _write_idx++;
     
+    // if the block is not full, return true
     return true;
 }
 
@@ -156,6 +225,7 @@ inline bool XBot::VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<Deriv
 template <typename Derived>
 inline bool XBot::VariableBuffer::add_elem(const Eigen::MatrixBase<Derived>& data)
 {
+    // check data size correctness
     if( data.size() != _rows*_cols )
     {
         fprintf(stderr, "Unable to add element to variable '%s': \
@@ -165,7 +235,7 @@ size does not match (%d vs %d)\n",
         return false;
     }
     
-    
+    // if current block is full, we push it into the queue, and try again
     if(!_current_block.add(data))
     {
         

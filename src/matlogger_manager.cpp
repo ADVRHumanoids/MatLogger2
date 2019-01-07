@@ -27,11 +27,12 @@ namespace XBot
 
 struct MatLoggerManager::Impl
 {
+    // weak pointers to all registered loggers
     std::vector<MatLogger2::WeakPtr> _loggers;
     
     void flush_thread_main();
     int  flush_available_data_all();
-    void on_block_available(int bytes, int n_free_blocks);
+    void on_block_available(VariableBuffer::BufferInfo buf_info);
     
     int _available_bytes;
     
@@ -44,6 +45,11 @@ struct MatLoggerManager::Impl
     Impl();
     
 };
+
+MatLoggerManager::Ptr MatLoggerManager::MakeInstance()
+{
+    return Ptr(new MatLoggerManager);
+}
 
 MatLoggerManager::Impl::Impl():
     _flush_thread_wake_up(false),
@@ -59,10 +65,15 @@ MatLoggerManager::Impl& MatLoggerManager::impl()
     return *_impl;
 }
 
-void MatLoggerManager::Impl::on_block_available(int bytes, int n_free_blocks)
+void MatLoggerManager::Impl::on_block_available(VariableBuffer::BufferInfo buf_info)
 {
-    _available_bytes += bytes;
-    if(_available_bytes > 30e6 || n_free_blocks < VariableBuffer::NUM_BLOCKS / 2)
+    const int NOTIFY_THRESHOLD_BYTES = 30e6;
+    const double NOTIFY_THRESHOLD_SPACE_AVAILABLE = 0.5;
+    
+    _available_bytes += buf_info.new_available_bytes;
+    
+    if(_available_bytes > NOTIFY_THRESHOLD_BYTES || 
+        buf_info.variable_free_space < NOTIFY_THRESHOLD_SPACE_AVAILABLE)
     {
         _available_bytes = 0;
         _flush_thread_wake_up = true;
@@ -113,14 +124,14 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
     std::weak_ptr<MatLoggerManager> self = shared_from_this();
     
     logger->set_on_data_available_callback(
-        [this, self](int bytes, int n_free_blocks)
+        [this, self](VariableBuffer::BufferInfo buf_info)
         {
             if(!self.expired())
             {
-                impl().on_block_available(bytes, n_free_blocks);
+                impl().on_block_available(buf_info);
             }
         }
-                                        );
+    );
     
     int logger_idx = impl()._loggers.size();
     
