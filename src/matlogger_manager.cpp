@@ -30,16 +30,29 @@ struct MatLoggerManager::Impl
     // weak pointers to all registered loggers
     std::vector<MatLogger2::WeakPtr> _loggers;
     
+    // main function for the flusher thread
     void flush_thread_main();
+    
+    // call flush_available_data() on all alive loggers
     int  flush_available_data_all();
+    
+    // callback that notifies when a enough data is available
     void on_block_available(VariableBuffer::BufferInfo buf_info);
     
+    // bytes available on the queue
     int _available_bytes;
     
+    // pointer flusher thread
     std::unique_ptr<std::thread> _flush_thread;
+    
+    // mutex and condition variable for flusher thread
     std::mutex _cond_mutex;
     std::condition_variable _cond;
+    
+    // loggers use this flag to wake up the flusher thread
     std::atomic<bool> _flush_thread_wake_up;
+    
+    // flag specifying if the flusher thread should exit
     std::atomic<bool> _flush_thread_run;
     
     Impl();
@@ -52,8 +65,8 @@ MatLoggerManager::Ptr MatLoggerManager::MakeInstance()
 }
 
 MatLoggerManager::Impl::Impl():
-    _flush_thread_wake_up(false),
     _available_bytes(0),
+    _flush_thread_wake_up(false),
     _flush_thread_run(false)
 {
 
@@ -67,17 +80,36 @@ MatLoggerManager::Impl& MatLoggerManager::impl()
 
 void MatLoggerManager::Impl::on_block_available(VariableBuffer::BufferInfo buf_info)
 {
-    const int NOTIFY_THRESHOLD_BYTES = 30e6;
+    /* This callback is invoked whenever a new block is pushed into the queue
+     * on any registered logger
+     */
+    
+    const int    NOTIFY_THRESHOLD_BYTES = 30e6;
     const double NOTIFY_THRESHOLD_SPACE_AVAILABLE = 0.5;
     
+    // increase available bytes count
     _available_bytes += buf_info.new_available_bytes;
     
+    // if enough new data is available, or the queue is getting full, notify 
+    // the flusher thread
     if(_available_bytes > NOTIFY_THRESHOLD_BYTES || 
         buf_info.variable_free_space < NOTIFY_THRESHOLD_SPACE_AVAILABLE)
     {
         _available_bytes = 0;
-        _flush_thread_wake_up = true;
-        _cond.notify_one();
+        _flush_thread_wake_up = true; 
+        _cond.notify_one(); 
+        
+        /* Note that we modify the condition _flush_thread_wake_up without
+        * holding the mutex. This way we ensure that the producer thread won't
+        * block. However, notifications may get lost, as follows:
+        *   - flusher thread checks the predicate, which returns false
+        *   - the condition is set to true and notify() is called
+        *   - flusher thread misses the notification, and goes to sleep
+        * 
+        * This is extremely unlikely, and if it happens should be acceptable.
+        * Data will be flushed with the next notification.
+        */
+        
     }
 }
 
@@ -89,12 +121,14 @@ MatLoggerManager::MatLoggerManager()
 
 bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
 {
+    // check for nullptr
     if(!logger)
     {
         fprintf(stderr, "Error in %s: null pointer provided as argument\n", __PRETTY_FUNCTION__);
         return false;
     }
     
+    // predicate that is used to tell if the provided logger is already registered
     auto predicate = [logger](const auto& elem)
                      {
                          bool ret = false;
@@ -109,6 +143,7 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
                          
                      };
     
+    // check if the provided logger is already registered
     auto it = std::find_if(impl()._loggers.begin(), 
                            impl()._loggers.end(), 
                            predicate);
@@ -164,15 +199,24 @@ void MatLoggerManager::start_flush_thread()
 int MatLoggerManager::Impl::flush_available_data_all()
 {
     int bytes = 0;
+    
+    // iterate over all loggers
     for(auto& logger_weak : _loggers)
     {
+        // !!! this is the main synchronization point that prevents loggers 
+        // to be destruced while their data is being flushed to disk !!!
+        // We try to lock the current logger by creating a shared pointer
         MatLogger2::Ptr logger = logger_weak.lock();
+        
+        // If we managed to lock it, it'll be kept a live till the scope exit
         if(!logger)
         {
             continue;
         }
+        
         bytes += logger->flush_available_data();
     }
+    
     return bytes;
 }
 
@@ -183,6 +227,7 @@ void MatLoggerManager::Impl::flush_thread_main()
     double work_time_total = 0;
     double sleep_time_total = 0;
     
+    // call flush_available_data() an all alive loggers, then wait for notifications
     while(_flush_thread_run)
     {
         
@@ -201,6 +246,7 @@ void MatLoggerManager::Impl::flush_thread_main()
             _cond.wait(lock, [this]{ return _flush_thread_wake_up.load(); });
         });
         
+        // reset condition
         _flush_thread_wake_up = false;
         
         
@@ -217,6 +263,12 @@ MatLoggerManager::~MatLoggerManager()
 {
     printf("%s\n", __PRETTY_FUNCTION__);
     
+    if(!impl()._flush_thread)
+    {
+        return;
+    }
+    
+    // force the flusher thread to exit
     {
         std::lock_guard<std::mutex> lock(impl()._cond_mutex);
         impl()._flush_thread_run = false;
@@ -224,6 +276,7 @@ MatLoggerManager::~MatLoggerManager()
         impl()._cond.notify_one();
     }
     
+    // join with the flusher thread
     impl()._flush_thread->join();
     
 }
