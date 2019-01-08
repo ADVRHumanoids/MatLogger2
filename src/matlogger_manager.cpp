@@ -121,20 +121,31 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
     
     namespace pl = std::placeholders;
     
+    //!!! This is the main synchronization point between loggers and the flusher
+    // thread !!! 
+    // All loggers keep a weak pointer to the logger manager; the on_block_available()
+    // callback is invoked only if the manager is alive; moreover, while the callback
+    // is being invoked, the manager is kept alive by calling weak_ptr<>::lock()
     std::weak_ptr<MatLoggerManager> self = shared_from_this();
     
+    // set on_block_available() as callback, taking care of possible death of
+    // the manager while the callback is being processed
     logger->set_on_data_available_callback(
         [this, self](VariableBuffer::BufferInfo buf_info)
         {
-            if(!self.expired())
+            // lock weak-ptr by creating a shared pointer
+            auto self_shared_ptr = self.lock();
+            
+            // if we managed to lock the manager, it'll be kept alive till
+            // the current scope exit
+            if(self_shared_ptr)
             {
                 impl().on_block_available(buf_info);
             }
         }
     );
     
-    int logger_idx = impl()._loggers.size();
-    
+    // register the logger
     impl()._loggers.emplace_back(logger);
     
     return true;
