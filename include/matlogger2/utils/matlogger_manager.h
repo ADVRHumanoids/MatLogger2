@@ -3,6 +3,7 @@
 
 #include <memory>
 
+
 namespace XBot 
 {
     class MatLogger2;

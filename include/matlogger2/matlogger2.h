@@ -4,10 +4,10 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <mutex>
 
 #include <eigen3/Eigen/Dense>
 
+#include <matlogger2/utils/thread.h>
 #include <matlogger2/utils/var_buffer.h>
 
 class _mat_t;
@@ -142,7 +142,7 @@ namespace XBot
         // producer must hold it during create(), and 
         // set_on_data_available_callback()
         // consumer must hold it during flush_available_data()
-        std::mutex _vars_mutex;
+        matlogger2::MutexType _vars_mutex;
         
         // map of all defined variables 
         std::unordered_map<std::string, VariableBuffer> _vars;

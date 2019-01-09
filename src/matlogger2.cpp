@@ -3,6 +3,7 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
+using namespace matlogger2;
 
 using namespace XBot;
 
@@ -207,7 +208,7 @@ extension, or no extension at all");
 
 void MatLogger2::set_on_data_available_callback(VariableBuffer::CallbackType callback)
 {
-    std::lock_guard<std::mutex> lock(_vars_mutex);    
+    std::lock_guard<MutexType> lock(_vars_mutex);    
     
     for(auto& p : _vars)
     {
@@ -228,7 +229,7 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
         return false;
     }
     
-    std::lock_guard<std::mutex> lock(_vars_mutex);    
+    std::lock_guard<MutexType> lock(_vars_mutex);    
     
     // check if variable is already defined (in which case, return false)
     auto it = _vars.find(var_name);
@@ -317,7 +318,7 @@ int MatLogger2::flush_available_data()
     int bytes = 0;
     
     // acquire exclusive access to the _vars object
-    std::lock_guard<std::mutex> lock(_vars_mutex);    
+    std::lock_guard<MutexType> lock(_vars_mutex);    
     for(auto& p : _vars)
     {
         Eigen::MatrixXd block;

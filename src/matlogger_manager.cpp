@@ -2,10 +2,10 @@
 #include <matlogger2/matlogger2.h>
 
 #include <algorithm>
-#include <thread>
-#include <condition_variable>
-#include <mutex>
 #include <atomic>
+
+
+#include <matlogger2/utils/thread.h>
 
 namespace
 {
@@ -21,6 +21,8 @@ namespace
         return std::chrono::duration_cast<std::chrono::nanoseconds>(toc-tic).count()*1e-9;
     }
 }
+
+using namespace matlogger2;
 
 namespace XBot  
 {
@@ -43,11 +45,11 @@ struct MatLoggerManager::Impl
     int _available_bytes;
     
     // pointer flusher thread
-    std::unique_ptr<std::thread> _flush_thread;
+    std::unique_ptr<ThreadType> _flush_thread;
     
     // mutex and condition variable for flusher thread
-    std::mutex _cond_mutex;
-    std::condition_variable _cond;
+    MutexType _cond_mutex;
+    CondVarType _cond;
     
     // loggers use this flag to wake up the flusher thread
     std::atomic<bool> _flush_thread_wake_up;
@@ -190,7 +192,7 @@ void MatLoggerManager::start_flush_thread()
 
 {
     impl()._flush_thread_run = true;
-    impl()._flush_thread.reset(new std::thread(&MatLoggerManager::Impl::flush_thread_main, 
+    impl()._flush_thread.reset(new ThreadType(&MatLoggerManager::Impl::flush_thread_main, 
                                                _impl.get()
                                               )
                               );
@@ -241,7 +243,7 @@ void MatLoggerManager::Impl::flush_thread_main()
                work_time, bytes*1e-6);
         printf("..average load is %.2f \n", 1.0/(1.0+sleep_time_total/work_time_total));
         
-        std::unique_lock<std::mutex> lock(_cond_mutex);
+        std::unique_lock<MutexType> lock(_cond_mutex);
         double sleep_time = measure_sec([this, &lock](){
             _cond.wait(lock, [this]{ return _flush_thread_wake_up.load(); });
         });
@@ -270,7 +272,7 @@ MatLoggerManager::~MatLoggerManager()
     
     // force the flusher thread to exit
     {
-        std::lock_guard<std::mutex> lock(impl()._cond_mutex);
+        std::lock_guard<MutexType> lock(impl()._cond_mutex);
         impl()._flush_thread_run = false;
         impl()._flush_thread_wake_up = true;
         impl()._cond.notify_one();
