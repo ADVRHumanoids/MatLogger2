@@ -28,9 +28,9 @@
 #define MAT5_H
 
 #ifdef __cplusplus
-#   define EXTERN extern "C"
+#   define EXTERN
 #else
-#   define EXTERN extern
+#   define EXTERN 
 #endif
 
 EXTERN mat_t    *Mat_Create5(const char *matname,const char *hdr_str);

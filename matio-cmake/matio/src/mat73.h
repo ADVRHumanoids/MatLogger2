@@ -30,9 +30,9 @@
 #include <hdf5.h>
 
 #ifdef __cplusplus
-#   define EXTERN extern "C"
+#   define EXTERN 
 #else
-#   define EXTERN extern
+#   define EXTERN 
 #endif
 
 EXTERN mat_t    *Mat_Create73(const char *matname,const char *hdr_str);

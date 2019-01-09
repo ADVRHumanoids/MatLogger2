@@ -38,9 +38,9 @@
 #include <stdarg.h>
 
 #ifdef __cplusplus
-#   define EXTERN extern "C"
+#   define EXTERN 
 #else
-#   define EXTERN extern
+#   define EXTERN
 #endif
 
 /** @defgroup MAT Matlab MAT File I/O Library */

@@ -9,27 +9,30 @@ configure_file(
   ESCAPE_QUOTES @ONLY)
 
 set(src_SOURCES
-  ${PROJECT_SOURCE_DIR}/matio/src/endian.c
-  ${PROJECT_SOURCE_DIR}/matio/src/mat.c
-  ${PROJECT_SOURCE_DIR}/matio/src/io.c
-  ${PROJECT_SOURCE_DIR}/matio/src/inflate.c
-  ${PROJECT_SOURCE_DIR}/matio/src/mat73.c
-  ${PROJECT_SOURCE_DIR}/matio/src/matvar_cell.c
-  ${PROJECT_SOURCE_DIR}/matio/src/matvar_struct.c
-  ${PROJECT_SOURCE_DIR}/matio/src/mat4.c
-  ${PROJECT_SOURCE_DIR}/matio/src/mat5.c
-  ${PROJECT_SOURCE_DIR}/matio/src/snprintf.c
-  ${PROJECT_SOURCE_DIR}/matio/src/read_data.c
-  ${PROJECT_SOURCE_DIR}/matio/src/mat5.h
-  ${PROJECT_SOURCE_DIR}/matio/src/mat73.h
-  ${PROJECT_SOURCE_DIR}/matio/src/matio_private.h
-  ${PROJECT_SOURCE_DIR}/matio/src/mat4.h
-  ${PROJECT_SOURCE_DIR}/matio/src/matio.h
-  ${CMAKE_CURRENT_BINARY_DIR}/matio/src/matio_pubconf.h
-  ${CMAKE_CURRENT_BINARY_DIR}/matio/src/matioConfig.h
+  ${PROJECT_SOURCE_DIR}/matio/src/endian.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/mat.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/io.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/inflate.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/mat73.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/matvar_cell.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/matvar_struct.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/mat4.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/mat5.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/snprintf.cpp
+  ${PROJECT_SOURCE_DIR}/matio/src/read_data.cpp
+#   ${PROJECT_SOURCE_DIR}/matio/src/mat5.h
+#   ${PROJECT_SOURCE_DIR}/matio/src/mat73.h
+#   ${PROJECT_SOURCE_DIR}/matio/src/matio_private.h
+#   ${PROJECT_SOURCE_DIR}/matio/src/mat4.h
+#   ${PROJECT_SOURCE_DIR}/matio/src/matio.h
+#   ${CMAKE_CURRENT_BINARY_DIR}/matio/src/matio_pubconf.h
+#   ${CMAKE_CURRENT_BINARY_DIR}/matio/src/matioConfig.h
 )
 
+set_source_files_properties(${src_SOURCES} PROPERTIES LANGUAGE CXX )
+
 add_compile_options("-fPIC")
+add_compile_options("-std=c++14")
 
 add_library(matio STATIC ${src_SOURCES})
 target_include_directories(matio
