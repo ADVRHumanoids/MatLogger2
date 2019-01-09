@@ -3,7 +3,6 @@
 #include <matlogger2/utils/matlogger_manager.h>
 #include <signal.h>
 
-#include <malloc_finder/malloc_finder_definitions.hpp>
 
 namespace
 {
@@ -152,16 +151,12 @@ TEST_F(TestApi, checkTypes)
     Eigen::VectorXd vector_valid_d(10);
     Eigen::VectorXf vector_valid_f(10);
     
-    XBot::Utils::MallocFinder::Enable();
-    XBot::Utils::MallocFinder::SetThrowOnMalloc(true);
     
     std::cout << malloc(19) << std::endl;
     
     ASSERT_TRUE(logger->add("vector_var", vector_valid_i));
     ASSERT_TRUE(logger->add("vector_var", vector_valid_f));
     ASSERT_TRUE(logger->add("vector_var", vector_valid_d));
-    
-    XBot::Utils::MallocFinder::Disable();
     
     Eigen::MatrixXd matrix_valid_d(10, 10);
     Eigen::MatrixXf matrix_valid_f(10, 10);
