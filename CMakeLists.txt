@@ -36,9 +36,14 @@ install(TARGETS ${LIBRARY_TARGET_NAME}
         EXPORT  ${LIBRARY_TARGET_NAME}
         LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"                            COMPONENT shlib
         ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"                            COMPONENT lib
-        RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}"                            COMPONENT bin
-        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${LIBRARY_TARGET_NAME}" COMPONENT dev)
+        RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}"                            COMPONENT bin)
 
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+    FILES_MATCHING PATTERN "*.h*"
+    PATTERN ".svn" EXCLUDE
+)
 
 include(InstallBasicPackageFiles)
 install_basic_package_files(${LIBRARY_TARGET_NAME}
@@ -55,6 +60,7 @@ if(${Xenomai_FOUND})
                     src/matlogger2.cpp
                     src/matlogger_manager.cpp
                     )
+    target_compile_definitions(${LIBRARY_TARGET_NAME}-xeno PRIVATE -DMATLOGGER2_USE_POSIX_THREAD)
     target_compile_options(${LIBRARY_TARGET_NAME}-xeno PRIVATE -std=c++14)
     target_link_libraries(${LIBRARY_TARGET_NAME}-xeno PRIVATE matio)     
     set_xeno_flags(${LIBRARY_TARGET_NAME}-xeno)
@@ -71,15 +77,6 @@ if(${Xenomai_FOUND})
             ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"                            COMPONENT lib
             RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}"                            COMPONENT bin
             PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${LIBRARY_TARGET_NAME}" COMPONENT dev)
-
-
-    include(InstallBasicPackageFiles)
-    install_basic_package_files(${LIBRARY_TARGET_NAME}
-                                VERSION ${${PROJECT_NAME}_VERSION}
-                                COMPATIBILITY AnyNewerVersion
-                                EXPORT ${LIBRARY_TARGET_NAME}
-                                VARS_PREFIX ${LIBRARY_TARGET_NAME}
-                                NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 endif()
                             
                             
