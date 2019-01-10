@@ -4,10 +4,13 @@
 /* Conditionally define mutex, condition_variable and thread classes based on
  * whether we're compiling for Xenomai3 or not */
 
+#ifndef MATLOGGER2_USE_POSIX_THREAD
+
+    /* Use threads from C++ library */
+
     #include <mutex>
     #include <condition_variable>
     #include <thread>
-
 
     namespace matlogger2 {
     
@@ -16,9 +19,15 @@
         typedef std::thread ThreadType;
         
     }
+    
+#else
+
+    /* Define minimalistic C++-like thread, mutex and condition_variable
+     * using POSIX */
 
     #include <pthread.h>
     #include <functional>
+    #include <mutex>
     
     namespace matlogger2
     {
@@ -45,20 +54,20 @@
                 
                 if(ret != 0)
                 {
-                    throw std::system_error("unable to start thread");
+                    throw std::runtime_error("unable to start thread");
                 }
                 
-                pthread_attr_destroy ( &attr );
+                pthread_attr_destroy(&attr);
                 
             }
             
             void join()
             {
-                int ret = pthread_join(&_handle);
+                int ret = pthread_join(_handle, nullptr);
                 
                 if(ret != 0)
                 {
-                    throw std::system_error("error while joining thread");
+                    throw std::runtime_error("error while joining thread");
                 }
             }
             
@@ -73,7 +82,7 @@
             }
             
             pthread_t _handle;
-            std::function<void*(void)> _main_func;
+            std::function<void(void)> _main_func;
             
         };
         
@@ -88,7 +97,10 @@
                 pthread_mutexattr_init(&attr);
                 
                 pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-                pthread_mutex_init(&_handle, &attr);
+                int ret = pthread_mutex_init(&_handle, &attr);
+                if(ret != 0){
+                    throw std::runtime_error("error initializing the mutex (" + std::to_string(ret) + ")");
+                }
                 
                 pthread_mutexattr_destroy(&attr);
             }
@@ -97,7 +109,7 @@
             {
                 int ret = pthread_mutex_lock(&_handle);
                 if(ret != 0){
-                    throw std::system_error("error acquiring the mutex (" + std::to_string(ret) + ")");
+                    throw std::runtime_error("error acquiring the mutex (" + std::to_string(ret) + ")");
                 }
             }
             
@@ -108,7 +120,7 @@
                     return false;
                 }
                 if(ret != 0){
-                    throw std::system_error("error acquiring the mutex (" + std::to_string(ret) + ")");
+                    throw std::runtime_error("error acquiring the mutex (" + std::to_string(ret) + ")");
                 }
                 return true;
             }
@@ -117,7 +129,7 @@
             {
                 int ret = pthread_mutex_unlock(&_handle);
                 if(ret != 0){
-                    throw std::system_error("error releasing the mutex (" + std::to_string(ret) + ")");
+                    throw std::runtime_error("error releasing the mutex (" + std::to_string(ret) + ")");
                 }
             }
             
@@ -146,30 +158,64 @@
           
         public:
             
-            condition_variable();
+            condition_variable()
+            {
+                
+                pthread_condattr_t attr;
+                pthread_condattr_init(&attr);
+                int ret_1 = pthread_condattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+                if(0 != ret_1)
+                {
+                    throw std::runtime_error("error in pthread_condattr_setpshared (" + std::to_string(ret_1) + ")");
+                }
+                
+                int ret = pthread_cond_init(&_handle, &attr);
+                if(ret != 0){
+                    throw std::runtime_error("error initializing condition_variable (" + std::to_string(ret) + ")");
+                }
+            }
             
             template <typename Predicate>
             void wait(std::unique_lock<mutex>& lock, const Predicate& pred)
             {
-                pthread_mutex_t * mutex = lock.mutex();
+                pthread_mutex_t * mutex = lock.mutex()->get_native_handle();
                 
                 while(!pred())
                 {
-                    
+                    printf("going to sleed..\n");
+                    int ret = pthread_cond_wait(&_handle, mutex);
+                    if(ret != 0){
+                        throw std::runtime_error("error in pthread_cond_wait (" + std::to_string(ret) + ")");
+                    }
+                    printf("woken up..\n");
                 }
             }
             
             void notify_one()
             {
-                
+                printf("waking up thread..\n");
+                int ret = pthread_cond_signal(&_handle);
+                if(ret != 0){
+                    throw std::runtime_error("error in pthread_cond_signal (" + std::to_string(ret) + ")");
+                }
             }
             
         private:
             
+            pthread_cond_t _handle;
             
             
         };
     }
+    
+    namespace matlogger2 {
+    
+        typedef matlogger2::mutex MutexType;
+        typedef matlogger2::condition_variable CondVarType;
+        typedef matlogger2::thread ThreadType;
+        
+    }
 
+#endif
 
 #endif 

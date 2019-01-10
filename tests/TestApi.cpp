@@ -2,7 +2,7 @@
 #include <matlogger2/matlogger2.h>
 #include <matlogger2/utils/matlogger_manager.h>
 #include <signal.h>
-
+#include <chrono>
 
 namespace
 {

@@ -2,6 +2,7 @@
 #include <matio-cmake/matio/src/matio.h>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
+#include <matlogger2/utils/thread.h>
 
 using namespace matlogger2;
 
@@ -143,6 +144,20 @@ bool VariableBuffer::flush_to_queue()
 }
 
 
+class MatLogger2::MutexImpl
+{
+public:
+    
+    matlogger2::MutexType& get()
+    {
+        return _mutex;
+    }
+    
+private:
+    
+    matlogger2::MutexType _mutex;
+};
+
 const std::string& VariableBuffer::get_name() const
 {
     return _name;
@@ -182,7 +197,8 @@ namespace{
 
 MatLogger2::MatLogger2(std::string file):
     _file_name(file),
-    _mat_file(nullptr)
+    _mat_file(nullptr),
+    _vars_mutex(new MutexImpl)
 {
     // get the file extension, or empty string if there is none
     std::string extension = get_file_extension(file);
@@ -208,7 +224,7 @@ extension, or no extension at all");
 
 void MatLogger2::set_on_data_available_callback(VariableBuffer::CallbackType callback)
 {
-    std::lock_guard<MutexType> lock(_vars_mutex);    
+    std::lock_guard<MutexType> lock(_vars_mutex->get());    
     
     for(auto& p : _vars)
     {
@@ -229,7 +245,7 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
         return false;
     }
     
-    std::lock_guard<MutexType> lock(_vars_mutex);    
+    std::lock_guard<MutexType> lock(_vars_mutex->get());    
     
     // check if variable is already defined (in which case, return false)
     auto it = _vars.find(var_name);
@@ -318,7 +334,7 @@ int MatLogger2::flush_available_data()
     int bytes = 0;
     
     // acquire exclusive access to the _vars object
-    std::lock_guard<MutexType> lock(_vars_mutex);    
+    std::lock_guard<MutexType> lock(_vars_mutex->get());    
     for(auto& p : _vars)
     {
         Eigen::MatrixXd block;
