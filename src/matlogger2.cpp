@@ -1,10 +1,11 @@
 #include <matlogger2/matlogger2.h>
-#include <matio-cmake/matio/src/matio.h>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
-#include "thread.h"
 
-using namespace matlogger2;
+#include "thread.h"
+#include "matlogger2_backend.h"
+
+using namespace XBot::matlogger2;
 
 using namespace XBot;
 
@@ -197,7 +198,6 @@ namespace{
 
 MatLogger2::MatLogger2(std::string file):
     _file_name(file),
-    _mat_file(nullptr),
     _vars_mutex(new MutexImpl)
 {
     // get the file extension, or empty string if there is none
@@ -214,11 +214,16 @@ extension, or no extension at all");
     }
     
     // create mat file (erase if existing already)
-    _mat_file = Mat_CreateVer(_file_name.c_str(), nullptr, MAT_FT_MAT73);
+    _backend = Backend::MakeInstance("matio");
     
-    if(!_mat_file)
+    if(!_backend)
     {
-        throw std::runtime_error("Mat_CreateVer: error in creating file");
+        throw std::runtime_error("MatLogger2: unable to create backend");
+    }
+    
+    if(!_backend->init(_file_name))
+    {
+        throw std::runtime_error("MatLogger2: unable to initialize backend");
     }
 }
 
@@ -295,39 +300,6 @@ bool MatLogger2::add(const std::string& var_name, double data)
 }
 
 
-namespace
-{
-    /**
-    * @brief Utility function that creates Mat variable from raw buffers,
-    * without copying it
-    * 
-    * @param data pointer to data
-    * @param r rows
-    * @param c cols
-    * @param s slices
-    * @param name name
-    * @return pointer to the constructed variable (must be Mat_VarFree-ed by 
-the user
-    */
-    matvar_t* create_var(const double * data, int r, int c, int s, const char* 
-name)
-    {
-        int n_dims = s == 1 ? 2 : 3;
-        std::size_t dims[3];
-        dims[0] = r;
-        dims[1] = c;
-        dims[2] = s;
-
-        return Mat_VarCreate(name,
-                            MAT_C_DOUBLE,
-                            MAT_T_DOUBLE,
-                            n_dims,
-                            dims,
-                            (void *)data,
-                            MAT_F_DONT_COPY_DATA);
-    }
-}
-
 int MatLogger2::flush_available_data()
 {
     // number of flushed bytes is returned on exit
@@ -368,25 +340,9 @@ int MatLogger2::flush_available_data()
             }
         
             // create mat variable
-            matvar_t * var = create_var(block.data(),
-                                        rows, cols, slices, 
-                                        p.second.get_name().c_str()); 
-            
-            // if vector we append along columns, otherwise along slices
-            int dim_append = is_vector ? 2 : 3;
-            int ret = Mat_VarWriteAppend(_mat_file, 
-                                         var, 
-                                         MAT_COMPRESSION_NONE, 
-                                         dim_append); // TBD compression from 
-                                                      // user
-            
-            if(ret != 0)
-            {
-                fprintf(stderr, "Mat_VarWriteAppend failed with code %d", ret);
-            }
-
-            // free mat variable
-            Mat_VarFree(var);
+            _backend->write(p.second.get_name().c_str(),
+                            block.data(),
+                            rows, cols, slices);
             
             // update bytes computation
             bytes += block.rows() * valid_elems * sizeof(double);
@@ -429,10 +385,7 @@ MatLogger2::~MatLogger2()
     
     printf("Flushed all data for file '%s'\n", _file_name.c_str());
     
-    // close MAT-file
-    Mat_Close(_mat_file);
-
-    _mat_file = nullptr;
+    _backend->close();
 }
 
 

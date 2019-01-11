@@ -39,8 +39,8 @@ if( Xenomai_DIR )
         endif()
         
         
-        message("Target type: ${TARGET_TYPE}")
-        message("Xeno CFLAGS: ${XENO_CFLAGS}")
+        message("Target type:  ${TARGET_TYPE}")
+        message("Xeno CFLAGS:  ${XENO_CFLAGS}")
         message("Xeno LDFLAGS: ${XENO_LDFLAGS}")
         
         # set flags

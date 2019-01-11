@@ -8,7 +8,7 @@
 #include <functional>
 #include <mutex>
 
-namespace matlogger2
+namespace XBot { namespace matlogger2
 {
     class thread
     {
@@ -153,7 +153,7 @@ namespace matlogger2
             
             pthread_condattr_t attr;
             pthread_condattr_init(&attr);
-            int ret_1 = pthread_condattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+            int ret_1 = pthread_condattr_setpshared(&attr, PTHREAD_PROCESS_PRIVATE);
             if(0 != ret_1)
             {
                 throw std::runtime_error("error in pthread_condattr_setpshared (" + std::to_string(ret_1) + ")");
@@ -172,18 +172,15 @@ namespace matlogger2
             
             while(!pred())
             {
-                printf("going to sleed..\n");
                 int ret = pthread_cond_wait(&_handle, mutex);
                 if(ret != 0){
                     throw std::runtime_error("error in pthread_cond_wait (" + std::to_string(ret) + ")");
                 }
-                printf("woken up..\n");
             }
         }
         
         void notify_one()
         {
-            printf("waking up thread..\n");
             int ret = pthread_cond_signal(&_handle);
             if(ret != 0){
                 throw std::runtime_error("error in pthread_cond_signal (" + std::to_string(ret) + ")");
@@ -196,6 +193,6 @@ namespace matlogger2
         
         
     };
-}
+} }
 
 #endif

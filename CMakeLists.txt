@@ -4,6 +4,7 @@ project(matlogger2 VERSION 1.0.0 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 include_directories(
     include/
@@ -22,9 +23,10 @@ set(LIBRARY_TARGET_NAME matlogger2)
 add_library(${LIBRARY_TARGET_NAME} SHARED 
                 src/matlogger2.cpp
                 src/matlogger_manager.cpp
+                src/matlogger2_backend.cpp
                 )
+target_link_libraries(${LIBRARY_TARGET_NAME} PRIVATE dl)
 target_compile_options(${LIBRARY_TARGET_NAME} PRIVATE -std=c++14)
-target_link_libraries(${LIBRARY_TARGET_NAME} PRIVATE matio)                                         
 set_target_properties(${LIBRARY_TARGET_NAME} PROPERTIES 
         VERSION ${${PROJECT_NAME}_VERSION})
         
@@ -68,10 +70,11 @@ if(${Xenomai_FOUND})
     add_library(${LIBRARY_TARGET_NAME}-xeno SHARED 
                     src/matlogger2.cpp
                     src/matlogger_manager.cpp
+                    src/matlogger2_backend.cpp
                     )
+    target_link_libraries(${LIBRARY_TARGET_NAME}-xeno PRIVATE dl)
     target_compile_definitions(${LIBRARY_TARGET_NAME}-xeno PRIVATE -DMATLOGGER2_USE_POSIX_THREAD)
     target_compile_options(${LIBRARY_TARGET_NAME}-xeno PRIVATE -std=c++14)
-    target_link_libraries(${LIBRARY_TARGET_NAME}-xeno PRIVATE matio)     
     set_xeno_flags(${LIBRARY_TARGET_NAME}-xeno)
     set_target_properties(${LIBRARY_TARGET_NAME}-xeno PROPERTIES 
             VERSION ${${PROJECT_NAME}_VERSION})
@@ -84,11 +87,19 @@ if(${Xenomai_FOUND})
             EXPORT  ${LIBRARY_TARGET_NAME}
             LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"                            COMPONENT shlib
             ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"                            COMPONENT lib
-            RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}"                            COMPONENT bin
-            PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${LIBRARY_TARGET_NAME}" COMPONENT dev)
+            RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}"                            COMPONENT bin)
 endif()
                             
-                            
+add_library(matlogger2-backend-matio SHARED src/matio_backend.cpp)
+target_compile_options(matlogger2-backend-matio PRIVATE -std=c++14)
+target_link_libraries(matlogger2-backend-matio PRIVATE matio)
+# Specify installation targets, typology and destination folders.
+install(TARGETS matlogger2-backend-matio
+        EXPORT  ${LIBRARY_TARGET_NAME}
+        LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"                            COMPONENT shlib
+        ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"                            COMPONENT lib
+        RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}"                            COMPONENT bin)
+     
                             
 # Add the uninstall target
 include(AddUninstallTarget)

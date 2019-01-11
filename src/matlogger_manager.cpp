@@ -22,7 +22,7 @@ namespace
     }
 }
 
-using namespace matlogger2;
+using namespace XBot::matlogger2;
 
 namespace XBot  
 {
@@ -97,6 +97,8 @@ void MatLoggerManager::Impl::on_block_available(VariableBuffer::BufferInfo buf_i
     if(_available_bytes > NOTIFY_THRESHOLD_BYTES || 
         buf_info.variable_free_space < NOTIFY_THRESHOLD_SPACE_AVAILABLE)
     {
+        std::lock_guard<MutexType> lock(_cond_mutex);
+        
         _available_bytes = 0;
         _flush_thread_wake_up = true; 
         _cond.notify_one(); 

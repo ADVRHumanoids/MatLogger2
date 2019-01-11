@@ -9,11 +9,15 @@
 
 #include <matlogger2/utils/var_buffer.h>
 
-class _mat_t;
-typedef struct _mat_t mat_t;
+
 
 namespace XBot 
 {
+    namespace matlogger2 
+    {
+        class Backend;
+    }
+
     /**
     * @brief The MatLogger2 class allows the user to save numeric variables
     * (scalars, vectors, matrices) to HDF5 MAT-files. 
@@ -153,9 +157,9 @@ namespace XBot
         // path to mat-file
         std::string _file_name;
         
-        // handle to mat-file
-        mat_t * _mat_file;
-
+        // handle to backend object
+        std::unique_ptr<matlogger2::Backend> _backend;
+        
         
     };
     

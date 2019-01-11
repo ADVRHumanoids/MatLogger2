@@ -4,6 +4,8 @@
 /* Conditionally define mutex, condition_variable and thread classes based on
  * whether we're compiling for Xenomai3 or not */
 
+
+
 #ifndef MATLOGGER2_USE_POSIX_THREAD
 
     /* Use threads from C++ library */
@@ -12,25 +14,25 @@
     #include <condition_variable>
     #include <thread>
 
-    namespace matlogger2 {
+    namespace XBot { namespace matlogger2 {
     
         typedef std::mutex MutexType;
         typedef std::condition_variable CondVarType;
         typedef std::thread ThreadType;
         
-    }
+    } }
     
 #else
 
     #include "thread_replacement.h"
     
-    namespace matlogger2 {
+    namespace XBot { namespace matlogger2 {
     
-        typedef matlogger2::mutex MutexType;
-        typedef matlogger2::condition_variable CondVarType;
-        typedef matlogger2::thread ThreadType;
+        typedef XBot::matlogger2::mutex MutexType;
+        typedef XBot::matlogger2::condition_variable CondVarType;
+        typedef XBot::matlogger2::thread ThreadType;
         
-    }
+    } }
 
 #endif
 
