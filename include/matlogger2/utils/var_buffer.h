@@ -4,8 +4,6 @@
 #include <string>
 #include <eigen3/Eigen/Dense>
 
-#include <matlogger2/utils/boost/spsc_queue_logger.hpp>
-
 namespace XBot 
 {
 
@@ -102,7 +100,7 @@ namespace XBot
         */
         bool flush_to_queue();
         
-        static const int NUM_BLOCKS = 40;
+        static const int NUM_BLOCKS = 100;
         
     private:
         
@@ -175,14 +173,12 @@ namespace XBot
         int _rows;
         int _cols;
         
-        template <typename T, int N>
-        using LockfreeQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<N>>;
-        
         // current block
         BufferBlock _current_block;
         
         // fifo spsc queue of blocks 
-        LockfreeQueue<BufferBlock, NUM_BLOCKS> _queue;
+        class QueueImpl;
+        std::unique_ptr<QueueImpl> _queue;
         
         // function to be called when a block is pushed into the queue
         CallbackType _on_block_available;

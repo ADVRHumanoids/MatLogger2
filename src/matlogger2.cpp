@@ -4,6 +4,7 @@
 
 #include "thread.h"
 #include "matlogger2_backend.h"
+#include "boost/spsc_queue_logger.hpp"
 
 using namespace XBot::matlogger2;
 
@@ -23,6 +24,24 @@ namespace
         return std::chrono::duration_cast<std::chrono::nanoseconds>(toc-tic).count()*1e-9;
     }
 }
+
+class VariableBuffer::QueueImpl
+{
+public:
+    
+    
+    template <typename T>
+    using LockfreeQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<VariableBuffer::NUM_BLOCKS>>;
+    
+    LockfreeQueue<BufferBlock>& get()
+    {
+        return queue;
+    }
+    
+private:
+    
+    LockfreeQueue<BufferBlock> queue;
+};
 
 VariableBuffer::BufferBlock::BufferBlock():
     _write_idx(0),
@@ -71,7 +90,7 @@ VariableBuffer::VariableBuffer(std::string name,
     _cols(dim_cols)
 {
     // allocate memory for the whole queue
-    _queue.reset(_current_block);
+    _queue->get().reset(_current_block);
 }
 
 std::pair< int, int > VariableBuffer::get_dimension() const
@@ -96,7 +115,7 @@ bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
     
     int ret = 0;
     
-    _queue.consume_one
+    _queue->get().consume_one
     (
         [&ret, &data](const BufferBlock& block)
         {
@@ -119,7 +138,7 @@ bool VariableBuffer::flush_to_queue()
     }
     
     // queue is full, return false and print to stderr
-    if(!_queue.push(_current_block))
+    if(!_queue->get().push(_current_block))
     {
         fprintf(stderr, "Failed to push block for variable '%s'\n", _name.c_str());
         return false;
@@ -134,7 +153,7 @@ bool VariableBuffer::flush_to_queue()
     {
         BufferInfo buf_info;
         buf_info.new_available_bytes = _current_block.get_size_bytes();
-        buf_info.variable_free_space = _queue.write_available() / (double)VariableBuffer::NUM_BLOCKS;
+        buf_info.variable_free_space = _queue->get().write_available() / (double)VariableBuffer::NUM_BLOCKS;
         buf_info.variable_name = _name.c_str();
         
         _on_block_available(buf_info);

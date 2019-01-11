@@ -21,8 +21,7 @@ namespace XBot
     * Then, either call flush_available_data() in a loop, or 
 call start_flush_thread()
     */
-    class MatLoggerManager : public 
-std::enable_shared_from_this<MatLoggerManager>
+    class MatLoggerManager : public std::enable_shared_from_this<MatLoggerManager>
     {
         
     public:
