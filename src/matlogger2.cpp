@@ -2,7 +2,7 @@
 #include <matio-cmake/matio/src/matio.h>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
-#include <matlogger2/utils/thread.h>
+#include "thread.h"
 
 using namespace matlogger2;
 

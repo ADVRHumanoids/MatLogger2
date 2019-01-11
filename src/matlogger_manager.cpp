@@ -5,7 +5,7 @@
 #include <atomic>
 
 
-#include <matlogger2/utils/thread.h>
+#include "thread.h"
 
 namespace
 {

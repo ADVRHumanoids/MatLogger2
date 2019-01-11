@@ -55,6 +55,15 @@ install_basic_package_files(${LIBRARY_TARGET_NAME}
                             
              
 find_package(Xenomai QUIET)
+
+add_executable(cond_test src/cond_test.cpp)
+target_compile_options(cond_test PRIVATE -std=c++14)
+if(${Xenomai_FOUND})
+    set_xeno_flags(cond_test)
+else()
+    target_link_libraries(cond_test PRIVATE -pthread)
+endif()
+
 if(${Xenomai_FOUND})
     add_library(${LIBRARY_TARGET_NAME}-xeno SHARED 
                     src/matlogger2.cpp
