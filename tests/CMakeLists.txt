@@ -26,8 +26,10 @@ include_directories(${GTEST_INCLUDE_DIRS})
 link_directories(${GTEST_LIB_DIRS})
 
 add_executable(TestApi TestApi.cpp)
-target_link_libraries(TestApi ${TestLibs})
+target_link_libraries(TestApi ${TestLibs}) # -fsanitize=thread)
 add_dependencies(TestApi GTest-ext matlogger2)
 add_test(NAME TestApi COMMAND TestApi)
 
+add_executable(ProfileTest profile_test.cpp)
+target_link_libraries(ProfileTest matlogger2 -lpthread)
 

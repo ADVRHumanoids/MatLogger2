@@ -152,8 +152,6 @@ TEST_F(TestApi, checkTypes)
     Eigen::VectorXf vector_valid_f(10);
     
     
-    std::cout << malloc(19) << std::endl;
-    
     ASSERT_TRUE(logger->add("vector_var", vector_valid_i));
     ASSERT_TRUE(logger->add("vector_var", vector_valid_f));
     ASSERT_TRUE(logger->add("vector_var", vector_valid_d));

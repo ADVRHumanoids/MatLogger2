@@ -2,6 +2,8 @@
 #define __XBOT_MATLOGGER2_BUFFER_BLOCK__
 
 #include <string>
+#include <memory>
+
 #include <eigen3/Eigen/Dense>
 
 namespace XBot 
@@ -114,6 +116,8 @@ namespace XBot
             
         public:
             
+            typedef std::shared_ptr<BufferBlock> Ptr;
+            
             BufferBlock();
             
             /**
@@ -174,7 +178,7 @@ namespace XBot
         int _cols;
         
         // current block
-        BufferBlock _current_block;
+        BufferBlock::Ptr _current_block;
         
         // fifo spsc queue of blocks 
         class QueueImpl;
@@ -232,12 +236,14 @@ size does not match (%d vs %d)\n",
     }
     
     // if current block is full, we push it into the queue, and try again
-    if(!_current_block.add(data))
+    if(!_current_block->add(data))
     {
         
+        // write current block to queue
         flush_to_queue();
         
-        _current_block.reset();
+        // reset current block
+        _current_block->reset();
         
         return add_elem(data);
     }

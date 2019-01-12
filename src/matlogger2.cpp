@@ -25,29 +25,6 @@ namespace
     }
 }
 
-class VariableBuffer::QueueImpl
-{
-public:
-    
-    static const int NUM_BLOCKS = 100;
-    
-    template <typename T>
-    using LockfreeQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<NUM_BLOCKS>>;
-    
-    LockfreeQueue<BufferBlock>& get()
-    {
-        return queue;
-    }
-    
-    static int Size()
-    {
-        return NUM_BLOCKS;
-    }
-    
-private:
-    
-    LockfreeQueue<BufferBlock> queue;
-};
 
 VariableBuffer::BufferBlock::BufferBlock():
     _write_idx(0),
@@ -83,20 +60,87 @@ void VariableBuffer::BufferBlock::reset()
     _write_idx = 0;
 }
 
+namespace lf = boost::lockfree;
 
-
+class VariableBuffer::QueueImpl
+{
+public:
+    
+    static const int NUM_BLOCKS = 20;
+    
+    template <typename T>
+    using LockfreeQueue = lf::spsc_queue<T, lf::capacity<NUM_BLOCKS>>;
+    
+    QueueImpl(int elem_size, int buffer_size)
+    {
+        for(int i = 0; i < NUM_BLOCKS; i++)
+        {
+            _block_pool.push_back(std::make_shared<BufferBlock>(elem_size, buffer_size));
+        }
+        
+        _read_queue.reset(BufferBlock::Ptr());
+        _write_queue.reset(BufferBlock::Ptr());
+    }
+    
+    BufferBlock::Ptr get_new_block()
+    {
+        // update pool with elements from write queue
+        _write_queue.consume_all(
+            [this](BufferBlock::Ptr block)
+            {
+                _block_pool.push_back(block);
+            }
+        );
+        
+        if(_block_pool.empty())
+        {
+            return nullptr;
+        }
+        
+        auto ret = _block_pool.back();
+        ret->reset();
+        _block_pool.pop_back();
+        
+        return ret;
+    }
+    
+    LockfreeQueue<BufferBlock::Ptr>& get_read_queue()
+    {
+        return _read_queue;
+    }
+    
+    LockfreeQueue<BufferBlock::Ptr>& get_write_queue()
+    {
+        return _write_queue;
+    }
+    
+    static int Size()
+    {
+        return NUM_BLOCKS;
+    }
+    
+private:
+    
+    // pool of available blocks
+    std::vector<BufferBlock::Ptr> _block_pool;
+    
+    // queue for blocks that are ready to be flushed by consumer
+    LockfreeQueue<BufferBlock::Ptr> _read_queue;
+    
+    // queue for blocks that are ready to be filled by producer
+    LockfreeQueue<BufferBlock::Ptr> _write_queue;
+};
 
 VariableBuffer::VariableBuffer(std::string name, 
                                int dim_rows,
                                int dim_cols, 
                                int block_size):
     _name(name),
-    _current_block(dim_rows*dim_cols, block_size),
     _rows(dim_rows),
-    _cols(dim_cols)
+    _cols(dim_cols),
+    _queue(new QueueImpl(dim_rows*dim_cols, block_size))
 {
-    // allocate memory for the whole queue
-    _queue->get().reset(_current_block);
+    _current_block = _queue->get_new_block();
 }
 
 std::pair< int, int > VariableBuffer::get_dimension() const
@@ -121,14 +165,17 @@ bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
     
     int ret = 0;
     
-    _queue->get().consume_one
-    (
-        [&ret, &data](const BufferBlock& block)
-        {
-            data = block.get_data();
-            ret = block.get_valid_elements();
-        }
-    );
+    BufferBlock::Ptr block;
+    if(_queue->get_read_queue().pop(block))
+    {
+        // copy data to output buffer
+        data = block->get_data();
+        ret = block->get_valid_elements();
+        
+        // reset block and send it back to producer thread
+        block->reset();
+        _queue->get_write_queue().push(block);
+    }
     
     valid_elements = ret;
     
@@ -138,31 +185,38 @@ bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
 bool VariableBuffer::flush_to_queue()
 {
     // no valid elements in the current block, we just return true
-    if(_current_block.get_valid_elements() == 0)
+    if(_current_block->get_valid_elements() == 0)
     {
         return true;
     }
     
     // queue is full, return false and print to stderr
-    if(!_queue->get().push(_current_block))
+    if(!_queue->get_read_queue().push(_current_block))
     {
         fprintf(stderr, "Failed to push block for variable '%s'\n", _name.c_str());
         return false;
     }
     // we managed to push a block into the queue
     
-    // reset current block, so that new elements can be written to it
-    _current_block.reset();
-    
     // if a callback was registered, we call it
     if(_on_block_available)
     {
         BufferInfo buf_info;
-        buf_info.new_available_bytes = _current_block.get_size_bytes();
-        buf_info.variable_free_space = _queue->get().write_available() / (double)VariableBuffer::NumBlocks();
+        buf_info.new_available_bytes = _current_block->get_size_bytes();
+        buf_info.variable_free_space = _queue->get_read_queue().write_available() / (double)VariableBuffer::NumBlocks();
         buf_info.variable_name = _name.c_str();
         
         _on_block_available(buf_info);
+    }
+    
+    // ask for a new block from the pool, so that new elements can be written to it
+    _current_block = _queue->get_new_block();
+    
+    if(!_current_block)
+    {
+        fprintf(stderr, "Failed to get new block for variable '%s'\n", _name.c_str());
+        throw std::runtime_error("TBD handle this in some way");
+        return false;
     }
     
     return true;
@@ -369,7 +423,7 @@ int MatLogger2::flush_available_data()
                 is_vector = false;
             }
         
-            // create mat variable
+            // write block
             _backend->write(p.second.get_name().c_str(),
                             block.data(),
                             rows, cols, slices);
