@@ -100,7 +100,7 @@ namespace XBot
         */
         bool flush_to_queue();
         
-        static const int NUM_BLOCKS = 100;
+        static int NumBlocks();
         
     private:
         

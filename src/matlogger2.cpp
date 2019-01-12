@@ -29,13 +29,19 @@ class VariableBuffer::QueueImpl
 {
 public:
     
+    static const int NUM_BLOCKS = 100;
     
     template <typename T>
-    using LockfreeQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<VariableBuffer::NUM_BLOCKS>>;
+    using LockfreeQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<NUM_BLOCKS>>;
     
     LockfreeQueue<BufferBlock>& get()
     {
         return queue;
+    }
+    
+    static int Size()
+    {
+        return NUM_BLOCKS;
     }
     
 private:
@@ -153,7 +159,7 @@ bool VariableBuffer::flush_to_queue()
     {
         BufferInfo buf_info;
         buf_info.new_available_bytes = _current_block.get_size_bytes();
-        buf_info.variable_free_space = _queue->get().write_available() / (double)VariableBuffer::NUM_BLOCKS;
+        buf_info.variable_free_space = _queue->get().write_available() / (double)VariableBuffer::NumBlocks();
         buf_info.variable_name = _name.c_str();
         
         _on_block_available(buf_info);
@@ -161,6 +167,11 @@ bool VariableBuffer::flush_to_queue()
     
     return true;
         
+}
+
+int VariableBuffer::NumBlocks()
+{
+    return QueueImpl::Size();
 }
 
 
@@ -282,10 +293,10 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     
     // compute block size from required buffer_size and number of blocks in
     // queue
-    int block_size = buffer_size / VariableBuffer::NUM_BLOCKS;
+    int block_size = buffer_size / VariableBuffer::NumBlocks();
     
     printf("Created variable '%s' (%d blocks, %d elem each)\n", 
-           var_name.c_str(), VariableBuffer::NUM_BLOCKS, block_size);
+           var_name.c_str(), VariableBuffer::NumBlocks(), block_size);
     
     // insert VariableBuffer object inside the _vars map
     _vars.emplace(std::piecewise_construct,
