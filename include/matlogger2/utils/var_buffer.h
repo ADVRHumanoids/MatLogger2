@@ -14,12 +14,13 @@ namespace XBot
     * a single logged variable. This is an internal library component,
     * and it is not meant for direct use.
     * 
-    * The memory buffer is splitted into a fixed number of blocks.
-    * The VariableBuffer keeps an internal lockfree queue of such blocks,
-    * plus another one that is used for writing logged data samples.
-    * When this block is full, it is pushed into the queue.
+    * The memory buffer is splitted into a fixed number of blocks, that make
+    * up a "pool" of available memory. When a block is full, it is pushed into
+    * a lockfree queue, so that it is available for the consumer thread.
+    * As soon as the block is consumed, it is returned back to the pool via 
+    * another lockfree queue.
     * 
-    * Apart from the lockfree queue, no other data is shared between add_elem()
+    * Apart from the lockfree queues, no other data is shared between add_elem()
     * and read_block(). So, they can be called concurrently without further 
     * synchronization.
     * 
