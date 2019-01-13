@@ -74,9 +74,8 @@ public:
     
     
     /**
-     * @brief ...
+     * @brief Get a new block from the pool, if available
      * 
-     * @param ret ...
      * @return a shared pointer to a block, or a nullptr if non is available
      */
     BufferBlock::Ptr get_new_block()
@@ -101,11 +100,17 @@ public:
         return ret;
     }
     
+    /**
+     * @brief Handle to the read queue
+     */
     LockfreeQueue<BufferBlock::Ptr>& get_read_queue()
     {
         return _read_queue;
     }
     
+    /**
+     * @brief Handle to the write queue
+     */
     LockfreeQueue<BufferBlock::Ptr>& get_write_queue()
     {
         return _write_queue;
@@ -137,6 +142,7 @@ VariableBuffer::VariableBuffer(std::string name,
     _cols(dim_cols),
     _queue(new QueueImpl(dim_rows*dim_cols, block_size))
 {
+    // intialize current block 
     _current_block = _queue->get_new_block();
 }
 
@@ -158,7 +164,8 @@ int VariableBuffer::BufferBlock::get_size_bytes() const
 bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
 {
     // this function is not allowed to use class members, 
-    // except consuming elements from _queue
+    // except consuming elements from read queue
+    // and pushing elements into write queue
     
     int ret = 0;
     
