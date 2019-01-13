@@ -104,6 +104,8 @@ namespace XBot
         
         static int NumBlocks();
         
+        ~VariableBuffer();
+        
     private:
         
         /**
@@ -159,6 +161,7 @@ namespace XBot
             
             int get_size() const;
             int get_size_bytes() const;
+            
             
         private:
             

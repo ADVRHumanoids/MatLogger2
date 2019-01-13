@@ -55,6 +55,7 @@ namespace XBot
         
     public:
         
+        
         typedef std::weak_ptr<MatLogger2> WeakPtr;
         typedef std::shared_ptr<MatLogger2> Ptr;
         
