@@ -40,10 +40,20 @@ void VariableBuffer::BufferBlock::reset()
 
 namespace lf = boost::lockfree;
 
+/**
+ * @brief The QueueImpl class implements the buffering strategy
+ * for a single logged variable. This consists of:
+ *  - a pool of available blocks, accessed only by the producer thread
+ *  - a "read queue": produces pushes ready-to-consume blocks into it
+ *  - a "write queue": consumed blocks are pushed into the queue in 
+ *    and finally return inside the pool
+ * 
+ */
 class VariableBuffer::QueueImpl
 {
 public:
     
+    // fixed number of blocks
     static const int NUM_BLOCKS = 20;
     
     template <typename T>
@@ -51,15 +61,24 @@ public:
     
     QueueImpl(int elem_size, int buffer_size)
     {
+        // allocate all blocks and push them into the pool
         for(int i = 0; i < NUM_BLOCKS; i++)
         {
             _block_pool.push_back(std::make_shared<BufferBlock>(elem_size, buffer_size));
         }
         
+        // pre allocate queues
         _read_queue.reset(BufferBlock::Ptr());
         _write_queue.reset(BufferBlock::Ptr());
     }
     
+    
+    /**
+     * @brief ...
+     * 
+     * @param ret ...
+     * @return a shared pointer to a block, or a nullptr if non is available
+     */
     BufferBlock::Ptr get_new_block()
     {
         // update pool with elements from write queue

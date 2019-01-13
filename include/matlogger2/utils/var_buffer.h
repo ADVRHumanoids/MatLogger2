@@ -84,6 +84,7 @@ namespace XBot
         
         /**
         * @brief Reads a whole block from the queue, if one is available.
+        * The block is then returned to the pool.
         * 
         * Only a single consumer thread is allowed to concurrently call this 
         * method.
