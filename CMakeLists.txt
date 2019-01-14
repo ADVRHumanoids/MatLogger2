@@ -16,16 +16,14 @@ include_directories(
 # Compile matio
 add_subdirectory(matio-cmake/)
  
-set(LIBRARY_TARGET_NAME matlogger2)
-
+# Compile and install matlogger2 library
+set(LIBRARY_TARGET_NAME matlogger2) # set library name
 set(${LIBRARY_TARGET_NAME}_SRC 
         src/matlogger2.cpp
         src/matlogger_manager.cpp
         src/matlogger2_backend.cpp
         src/var_buffer.cpp
     )
-
-# Compile and install matlogger2 library
 add_library(${LIBRARY_TARGET_NAME} SHARED ${${LIBRARY_TARGET_NAME}_SRC})
 target_link_libraries(${LIBRARY_TARGET_NAME} PRIVATE dl -pthread)
 target_compile_options(${LIBRARY_TARGET_NAME} PRIVATE -std=c++14)
@@ -61,23 +59,7 @@ install_basic_package_files(${LIBRARY_TARGET_NAME}
 # if Xenomai is found, compile the -xeno target to be used on RT systems
 find_package(Xenomai QUIET)
 if(${Xenomai_FOUND})
-    add_library(${LIBRARY_TARGET_NAME}-xeno SHARED ${${LIBRARY_TARGET_NAME}_SRC})
-    target_link_libraries(${LIBRARY_TARGET_NAME}-xeno PRIVATE dl)
-    target_compile_definitions(${LIBRARY_TARGET_NAME}-xeno PRIVATE -DMATLOGGER2_USE_POSIX_THREAD)
-    target_compile_options(${LIBRARY_TARGET_NAME}-xeno PRIVATE -std=c++14)
-    set_xeno_flags(${LIBRARY_TARGET_NAME}-xeno)
-    set_target_properties(${LIBRARY_TARGET_NAME}-xeno PROPERTIES 
-            VERSION ${${PROJECT_NAME}_VERSION})
-            
-    target_include_directories(${LIBRARY_TARGET_NAME}-xeno INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
-
-    # Specify installation targets, typology and destination folders.
-    install(TARGETS  ${LIBRARY_TARGET_NAME}-xeno
-            EXPORT   ${LIBRARY_TARGET_NAME}
-            LIBRARY  DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
-            ARCHIVE  DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT lib
-            RUNTIME  DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin)
+    include(cmake/xeno-build.cmake)
 endif()
              
              
