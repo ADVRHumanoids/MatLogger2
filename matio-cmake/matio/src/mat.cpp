@@ -243,9 +243,6 @@ mat_t *
 Mat_CreateVer(const char *matname,const char *hdr_str,enum mat_ft mat_file_ver)
 {
     
-    printf("AAAA %s\n", __PRETTY_FUNCTION__);
-    fflush(stdout);
-    
     mat_t *mat;
 
     switch ( mat_file_ver ) {

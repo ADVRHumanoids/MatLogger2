@@ -27,7 +27,6 @@
 #include <dlfcn.h>
 
 #include <boost/algorithm/string.hpp>
-// #include <boost/filesystem.hpp>
 
 #include "matlogger2_backend.h"
 

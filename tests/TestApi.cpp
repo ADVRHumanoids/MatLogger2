@@ -112,6 +112,8 @@ TEST_F(TestApi, usageExample)
             bytes_last = bytes;
             t_last = now;
             
+            loggers.pop_back();
+            
             if(now - tic > test_duration) break;
         }
         

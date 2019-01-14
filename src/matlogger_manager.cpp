@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <atomic>
-
+#include <list>
 
 #include "thread.h"
 
@@ -30,7 +30,10 @@ namespace XBot
 struct MatLoggerManager::Impl
 {
     // weak pointers to all registered loggers
-    std::vector<MatLogger2::WeakPtr> _loggers;
+    std::list<MatLogger2::WeakPtr> _loggers;
+    
+    // mutex for protecting _loggers
+    MutexType _loggers_mutex;
     
     // main function for the flusher thread
     void flush_thread_main();
@@ -132,6 +135,9 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
         return false;
     }
     
+    // acquire exclusive access to registered loggers list
+    std::lock_guard<MutexType> lock(impl()._loggers_mutex);
+    
     // predicate that is used to tell if the provided logger is already registered
     auto predicate = [logger](const auto& elem)
                      {
@@ -204,8 +210,12 @@ int MatLoggerManager::Impl::flush_available_data_all()
 {
     int bytes = 0;
     
-    // iterate over all loggers
-    for(auto& logger_weak : _loggers)
+    // acquire exclusive access to registered loggers list
+    std::lock_guard<MutexType> lock(_loggers_mutex);
+    
+    // define function that processes a single registered logger, 
+    // and marks it for removal if it is expired
+    auto process_or_remove = [&bytes](auto& logger_weak)
     {
         // !!! this is the main synchronization point that prevents loggers 
         // to be destruced while their data is being flushed to disk !!!
@@ -215,11 +225,17 @@ int MatLoggerManager::Impl::flush_available_data_all()
         // If we managed to lock it, it'll be kept a live till the scope exit
         if(!logger)
         {
-            continue;
+            printf("MatLoggerManager: removing expired logger..\n");
+            return true; // removed expired logger
         }
         
         bytes += logger->flush_available_data();
-    }
+        
+        return false; // don't remove
+    };
+    
+    // process all loggers, remove those that are expired
+    _loggers.remove_if(process_or_remove);
     
     return bytes;
 }
