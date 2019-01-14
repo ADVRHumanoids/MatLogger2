@@ -222,7 +222,7 @@ int MatLoggerManager::Impl::flush_available_data_all()
         // We try to lock the current logger by creating a shared pointer
         MatLogger2::Ptr logger = logger_weak.lock();
         
-        // If we managed to lock it, it'll be kept a live till the scope exit
+        // If we managed to lock it, it'll be kept alive till the scope exit
         if(!logger)
         {
             printf("MatLoggerManager: removing expired logger..\n");

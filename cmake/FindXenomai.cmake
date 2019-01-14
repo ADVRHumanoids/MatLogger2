@@ -53,6 +53,7 @@ if( Xenomai_DIR )
     
 else( Xenomai_DIR )
     MESSAGE(STATUS "xenomai NOT found. (${Xenomai_SEARCH_PATH})")
+    set(Xenomai_FOUND False)
 endif( Xenomai_DIR )
 
 

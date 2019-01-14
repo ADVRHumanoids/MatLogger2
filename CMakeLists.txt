@@ -57,18 +57,21 @@ install_basic_package_files(${LIBRARY_TARGET_NAME}
                             
 
 # if Xenomai is found, compile the -xeno target to be used on RT systems
-find_package(Xenomai QUIET)
-if(${Xenomai_FOUND})
+option(ENABLE_XENO "Compile and install matlogger2-xeno target" FALSE)
+if(${ENABLE_XENO})
     include(cmake/xeno-build.cmake)
 endif()
              
              
 # Compile and install matio backend  
-add_library(matlogger2-backend-matio SHARED src/matio_backend.cpp)
-target_compile_options(matlogger2-backend-matio PRIVATE -std=c++14)
-target_link_libraries(matlogger2-backend-matio PRIVATE matio)
+set(MATIO_BACKEND_NAME matlogger2-backend-matio)
+add_library(${MATIO_BACKEND_NAME} SHARED src/matio_backend.cpp)
+target_compile_options(${MATIO_BACKEND_NAME} PRIVATE -std=c++14)
+target_link_libraries(${MATIO_BACKEND_NAME} PRIVATE matio)
+set_target_properties(${MATIO_BACKEND_NAME} PROPERTIES 
+        VERSION ${${PROJECT_NAME}_VERSION})
 # Specify installation targets, typology and destination folders.
-install(TARGETS  matlogger2-backend-matio
+install(TARGETS  ${MATIO_BACKEND_NAME}
         EXPORT   ${LIBRARY_TARGET_NAME}
         LIBRARY  DESTINATION "${CMAKE_INSTALL_LIBDIR}"  COMPONENT shlib
         ARCHIVE  DESTINATION "${CMAKE_INSTALL_LIBDIR}"  COMPONENT lib
