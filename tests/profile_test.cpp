@@ -17,6 +17,7 @@ int main()
 {
     std::vector<std::string> vars;
     auto logger = XBot::MatLogger2::MakeLogger("/tmp/profile_log");
+    logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
     
     const int VAR_SIZE = 45;
     for(int i = 0; i < 35; i++)
@@ -27,8 +28,10 @@ int main()
     
     Eigen::VectorXd data(VAR_SIZE);
     
+    for(int i = 0; i < 8e4; i++)
     for(int i = 0; i < 1e4; i++)
     {
+        data.setConstant(VAR_SIZE, i);
         log_data(data, vars, logger);
     }
     
