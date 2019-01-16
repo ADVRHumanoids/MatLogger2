@@ -83,6 +83,15 @@ namespace XBot
         * for writing to disk.
         */
         void set_on_data_available_callback(VariableBuffer::CallbackType callback);
+        
+        /**
+        * @brief Set whether this buffer should be treated as a (possibly dual threaded) 
+        * producer-consumer queue, or as a single-threaded circular buffer.
+        * By default, the producer_consumer mode is used.
+        * 
+        * NOTE: only call this method before starting using the logger!
+        */
+        void set_buffer_mode(VariableBuffer::Mode buffer_mode);
     
         /**
         * @brief Create a logged variable from its name as it will appear 
@@ -151,6 +160,9 @@ namespace XBot
         
         // map of all defined variables 
         std::unordered_map<std::string, VariableBuffer> _vars;
+        
+        // buffer mode
+        VariableBuffer::Mode _buffer_mode;
         
         // callback that all variables shall use to notify that a new block is available 
         VariableBuffer::CallbackType _on_block_available;

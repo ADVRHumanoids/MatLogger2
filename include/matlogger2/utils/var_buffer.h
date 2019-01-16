@@ -34,6 +34,20 @@ namespace XBot
     
     public:
         
+        /**
+        * @brief Enum for specifying the type of buffer
+        */
+        enum class Mode
+        {
+            // producer-consumer mode (possibly dual thread):
+            // the user (or the provided MatLoggerManager)
+            // is responsible for keeping the buffer free                   
+            producer_consumer,  
+            
+            // circular buffer mode (single thread)
+            circular_buffer    
+        };
+        
         struct BufferInfo
         {
             // name of the variable that the new data refers to
@@ -56,13 +70,24 @@ namespace XBot
         * @param dim_cols Sample columns number
         * @param block_size Number of samples that make up a block
         */
-        VariableBuffer(std::string name, int dim_rows, int dim_cols, int block_size);
+        VariableBuffer(std::string name, 
+                       int dim_rows, int dim_cols, 
+                       int block_size);
         
         /**
         * @brief Sets a callback that is used to notify that a new block
         * has been pushed into the queue.
         */
         void set_on_block_available(CallbackType callback);
+        
+        /**
+        * @brief Set whether this buffer should be treated as a (possibly dual threaded) 
+        * producer-consumer queue, or as a single-threaded circular buffer.
+        * By default, the producer_consumer mode is used.
+        * 
+        * NOTE: only call this method before starting using the logger!!
+        */
+        void set_buffer_mode(VariableBuffer::Mode mode);
         
         const std::string& get_name() const;
         
@@ -94,7 +119,8 @@ namespace XBot
         * data.leftCols(valid_elements) contains valid data.
         * @return True if valid_elements > 0
         */
-        bool read_block(Eigen::MatrixXd& data, int& valid_elements);
+        bool read_block(Eigen::MatrixXd& data, 
+                        int& valid_elements);
         
         /**
         * @brief Writes current block to the queue. If a callback was registered through
@@ -174,6 +200,9 @@ namespace XBot
             Eigen::MatrixXd _buf;
             
         };
+        
+        // mode
+        Mode _buffer_mode;
         
         // variable name
         std::string _name;

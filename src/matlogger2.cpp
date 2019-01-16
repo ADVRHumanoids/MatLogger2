@@ -78,7 +78,8 @@ namespace{
 
 MatLogger2::MatLogger2(std::string file):
     _file_name(file),
-    _vars_mutex(new MutexImpl)
+    _vars_mutex(new MutexImpl),
+    _buffer_mode(VariableBuffer::Mode::producer_consumer)
 {
     // get the file extension, or empty string if there is none
     std::string extension = get_file_extension(file);
@@ -119,6 +120,19 @@ void MatLogger2::set_on_data_available_callback(VariableBuffer::CallbackType cal
     _on_block_available = callback;
 }
 
+void XBot::MatLogger2::set_buffer_mode(VariableBuffer::Mode buffer_mode)
+{
+    std::lock_guard<MutexType> lock(_vars_mutex->get());    
+    
+    for(auto& p : _vars)
+    {
+        p.second.set_buffer_mode(buffer_mode);
+    }
+    
+    _buffer_mode = buffer_mode;
+}
+
+
 bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buffer_size)
 {
     
@@ -156,6 +170,7 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     // set callback: this will be called whenever a new data block is 
     // available in the variable queue
     _vars.at(var_name).set_on_block_available(_on_block_available);
+    _vars.at(var_name).set_buffer_mode(_buffer_mode);
     
     return true;
 }
@@ -237,10 +252,11 @@ bool MatLogger2::flush_to_queue_all()
     bool ret = true;
     for(auto& p : _vars)
     {
-        ret &= p.second.flush_to_queue();
+        ret = p.second.flush_to_queue() && ret;
     }
     return ret;
 }
+
 
 MatLogger2::~MatLogger2()
 {
@@ -253,6 +269,9 @@ MatLogger2::~MatLogger2()
     
     // de-register any callback
     set_on_data_available_callback(VariableBuffer::CallbackType());
+    
+    // set producer_consumer mode to be able to call read_block()
+    set_buffer_mode(VariableBuffer::Mode::producer_consumer);
     
     // flush to queue and then flush to disk till all buffers are empty
     while(!flush_to_queue_all())
