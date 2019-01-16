@@ -140,7 +140,8 @@ VariableBuffer::VariableBuffer(std::string name,
     _name(name),
     _rows(dim_rows),
     _cols(dim_cols),
-    _queue(new QueueImpl(dim_rows*dim_cols, block_size))
+    _queue(new QueueImpl(dim_rows*dim_cols, block_size)),
+    _buffer_mode(Mode::producer_consumer)
 {
     // intialize current block 
     _current_block = _queue->get_new_block();
@@ -161,8 +162,13 @@ int VariableBuffer::BufferBlock::get_size_bytes() const
     return _buf.size() * sizeof(_buf[0]);
 }
 
-bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
+bool XBot::VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
 {
+    if(_buffer_mode == Mode::circular_buffer)
+    {
+        throw std::logic_error("Cannot call read_block() when in circular_buffer mode!");
+    }
+    
     // this function is not allowed to use class members, 
     // except consuming elements from read queue
     // and pushing elements into write queue
@@ -174,6 +180,7 @@ bool VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements)
     {
         // copy data from block to output buffer
         data = block->get_data();
+        
         ret = block->get_valid_elements();
         
         // reset block and send it back to producer thread
@@ -194,35 +201,59 @@ bool VariableBuffer::flush_to_queue()
         return true;
     }
     
-    // queue is full, return false and print to stderr
-    if(!_queue->get_read_queue().push(_current_block))
+    // fill buffer info struct
+    BufferInfo buf_info;
+    buf_info.new_available_bytes = _current_block->get_size_bytes();
+    buf_info.variable_free_space = _queue->get_read_queue().write_available() / (double)VariableBuffer::NumBlocks();
+    buf_info.variable_name = _name.c_str();
+    
+    // try to push current block into the queue & obtain a new block
+    BufferBlock::Ptr new_block = _queue->get_new_block();
+    
+    // handle failure to obtain new block
+    if(!new_block)
     {
-        fprintf(stderr, "Failed to push block for variable '%s'\n", _name.c_str());
-        return false;
+        // if we are in circular buffer mode..
+        if(_buffer_mode == Mode::circular_buffer)
+        {
+            // read oldest block from read queue,
+            // and set it as new block
+            // NOTE: pop() is safe because read_block() cannot be called
+            // from circular_buffer mode
+            if(!_queue->get_read_queue().pop(new_block)) 
+            {
+                // should never be called
+                throw std::logic_error("Failed to pop a new block for variable '" + _name + "'");
+            }
+            
+        }
+        else // producer-consumer mode
+        {
+            // in this case we can't do anything but keep writing on the current block
+            fprintf(stderr, "Failed to get new block for variable '%s'\n", _name.c_str());
+            return false;
+        }
     }
+    
+    // we managed to get a new block, try to push the current into the queue
+    // this should never fail
+    bool push_to_queue_success = _queue->get_read_queue().push(_current_block);
+    
+    if(!push_to_queue_success)
+    {
+        // should never be called
+        throw std::logic_error("Failed to push current block for variable '" + _name + "'");
+    }
+    
     // we managed to push a block into the queue
+    _current_block = new_block;
     
     // if a callback was registered, we call it
     if(_on_block_available)
     {
-        BufferInfo buf_info;
-        buf_info.new_available_bytes = _current_block->get_size_bytes();
-        buf_info.variable_free_space = _queue->get_read_queue().write_available() / (double)VariableBuffer::NumBlocks();
-        buf_info.variable_name = _name.c_str();
-        
         _on_block_available(buf_info);
     }
-    
-    // ask for a new block from the pool, so that new elements can be written to it
-    _current_block = _queue->get_new_block();
-    
-    if(!_current_block)
-    {
-        fprintf(stderr, "Failed to get new block for variable '%s'\n", _name.c_str());
-        throw std::runtime_error("TBD handle this in some way");
-        return false;
-    }
-    
+
     return true;
         
 }
@@ -231,6 +262,12 @@ int VariableBuffer::NumBlocks()
 {
     return QueueImpl::Size();
 }
+
+void XBot::VariableBuffer::set_buffer_mode(VariableBuffer::Mode mode)
+{
+    _buffer_mode = mode;
+}
+
 
 VariableBuffer::~VariableBuffer()
 {
