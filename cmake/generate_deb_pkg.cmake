@@ -8,3 +8,7 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "arturo.laurenzi@iit.it")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "C++ library for logging numeric data to MAT-file")
 include(CPack)
+
+set(DEB_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Linux.deb)
+add_custom_target(release_deb 
+                    cp ${CMAKE_CURRENT_BINARY_DIR}/${DEB_FILE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/release)
