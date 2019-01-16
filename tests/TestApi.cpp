@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <matlogger2/matlogger2.h>
-#include <matlogger2/utils/matlogger_manager.h>
+#include <matlogger2/utils/mat_appender.h>
 #include <signal.h>
 #include <chrono>
 
@@ -45,7 +45,7 @@ TEST_F(TestApi, usageExample)
 {
     
     std::vector<XBot::MatLogger2::Ptr> loggers;
-    auto appender = XBot::MatLoggerManager::MakeInstance();
+    auto appender = XBot::MatAppender::MakeInstance();
     
     for(int i = 1; i <= 10; i++)
     {

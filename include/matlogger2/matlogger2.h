@@ -47,7 +47,7 @@ namespace XBot
     * provided that the following constraints are satisfied.
     *   1) only one "producer" thread shall call create() and add() concurrently
     *   2) only one "consumer" thread shall call flush_available_data() concurrently
-    * The MatLoggerManager class (see matlogger2/utils/matlogger_manager.h) provides a 
+    * The MatAppender class (see matlogger2/utils/matlogger_manager.h) provides a 
     * ready-to-use consumer thread that periodically writes available data to disk.
     */
     class MatLogger2 

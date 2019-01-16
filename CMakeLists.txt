@@ -20,7 +20,7 @@ add_subdirectory(matio-cmake/)
 set(LIBRARY_TARGET_NAME matlogger2) # set library name
 set(${LIBRARY_TARGET_NAME}_SRC 
         src/matlogger2.cpp
-        src/matlogger_manager.cpp
+        src/mat_appender.cpp
         src/matlogger2_backend.cpp
         src/var_buffer.cpp
     )
@@ -31,7 +31,7 @@ set_target_properties(${LIBRARY_TARGET_NAME} PROPERTIES
         VERSION ${${PROJECT_NAME}_VERSION})
         
 target_include_directories(${LIBRARY_TARGET_NAME} INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                         "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
+                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
 
 # Specify installation targets, typology and destination folders.
 install(TARGETS  ${LIBRARY_TARGET_NAME}
@@ -92,4 +92,6 @@ if(BUILD_TESTS)
   add_custom_target(test_verbose ${CMAKE_CTEST_COMMAND} -V)
   add_subdirectory(tests)
 endif()
+
+
 

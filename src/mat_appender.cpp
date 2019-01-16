@@ -1,4 +1,4 @@
-#include <matlogger2/utils/matlogger_manager.h>
+#include <matlogger2/utils/mat_appender.h>
 #include <matlogger2/matlogger2.h>
 
 #include <algorithm>
@@ -27,7 +27,7 @@ using namespace XBot::matlogger2;
 namespace XBot  
 {
 
-struct MatLoggerManager::Impl
+struct MatAppender::Impl
 {
     // weak pointers to all registered loggers
     std::list<MatLogger2::WeakPtr> _loggers;
@@ -64,12 +64,12 @@ struct MatLoggerManager::Impl
     
 };
 
-MatLoggerManager::Ptr MatLoggerManager::MakeInstance()
+MatAppender::Ptr MatAppender::MakeInstance()
 {
-    return Ptr(new MatLoggerManager);
+    return Ptr(new MatAppender);
 }
 
-MatLoggerManager::Impl::Impl():
+MatAppender::Impl::Impl():
     _available_bytes(0),
     _flush_thread_wake_up(false),
     _flush_thread_run(false)
@@ -78,12 +78,12 @@ MatLoggerManager::Impl::Impl():
 }
 
     
-MatLoggerManager::Impl& MatLoggerManager::impl()
+MatAppender::Impl& MatAppender::impl()
 {
     return *_impl;
 }
 
-void MatLoggerManager::Impl::on_block_available(VariableBuffer::BufferInfo buf_info)
+void MatAppender::Impl::on_block_available(VariableBuffer::BufferInfo buf_info)
 {
     /* This callback is invoked whenever a new block is pushed into the queue
      * on any registered logger
@@ -120,13 +120,13 @@ void MatLoggerManager::Impl::on_block_available(VariableBuffer::BufferInfo buf_i
     }
 }
 
-MatLoggerManager::MatLoggerManager()
+MatAppender::MatAppender()
 {
     _impl = std::make_unique<Impl>();
 }
 
 
-bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
+bool MatAppender::add_logger(std::shared_ptr<MatLogger2> logger)
 {
     // check for nullptr
     if(!logger)
@@ -171,7 +171,7 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
     // All loggers keep a weak pointer to the logger manager; the on_block_available()
     // callback is invoked only if the manager is alive; moreover, while the callback
     // is being invoked, the manager is kept alive by calling weak_ptr<>::lock()
-    std::weak_ptr<MatLoggerManager> self = shared_from_this();
+    std::weak_ptr<MatAppender> self = shared_from_this();
     
     // set on_block_available() as callback, taking care of possible death of
     // the manager while the callback is being processed
@@ -196,17 +196,17 @@ bool MatLoggerManager::add_logger(std::shared_ptr<MatLogger2> logger)
     return true;
 }
 
-void MatLoggerManager::start_flush_thread()
+void MatAppender::start_flush_thread()
 
 {
     impl()._flush_thread_run = true;
-    impl()._flush_thread.reset(new ThreadType(&MatLoggerManager::Impl::flush_thread_main, 
+    impl()._flush_thread.reset(new ThreadType(&MatAppender::Impl::flush_thread_main, 
                                                _impl.get()
                                               )
                               );
 }
 
-int MatLoggerManager::Impl::flush_available_data_all()
+int MatAppender::Impl::flush_available_data_all()
 {
     int bytes = 0;
     
@@ -225,7 +225,7 @@ int MatLoggerManager::Impl::flush_available_data_all()
         // If we managed to lock it, it'll be kept alive till the scope exit
         if(!logger)
         {
-            printf("MatLoggerManager: removing expired logger..\n");
+            printf("MatAppender: removing expired logger..\n");
             return true; // removed expired logger
         }
         
@@ -241,7 +241,7 @@ int MatLoggerManager::Impl::flush_available_data_all()
 }
 
 
-void MatLoggerManager::Impl::flush_thread_main()
+void MatAppender::Impl::flush_thread_main()
 {
     uint64_t total_bytes = 0;
     double work_time_total = 0;
@@ -279,7 +279,7 @@ void MatLoggerManager::Impl::flush_thread_main()
 }
 
 
-MatLoggerManager::~MatLoggerManager()
+MatAppender::~MatAppender()
 {
     printf("%s\n", __PRETTY_FUNCTION__);
     

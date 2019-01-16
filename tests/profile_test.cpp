@@ -1,5 +1,5 @@
 #include <matlogger2/matlogger2.h>
-#include <matlogger2/utils/matlogger_manager.h>
+#include <matlogger2/utils/mat_appender.h>
 
 #include <unistd.h>
 
@@ -20,16 +20,15 @@ int main()
     logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
     
     const int VAR_SIZE = 45;
-    for(int i = 0; i < 35; i++)
+    for(int i = 0; i < 1; i++)
     {
         vars.emplace_back("my_var_" + std::to_string(i+1));
-        logger->create(vars.back(), VAR_SIZE, 1, 2e4 + i*40);
+        logger->create(vars.back(), VAR_SIZE, 1, 2e4 + 100);
     }
     
     Eigen::VectorXd data(VAR_SIZE);
     
     for(int i = 0; i < 8e4; i++)
-    for(int i = 0; i < 1e4; i++)
     {
         data.setConstant(VAR_SIZE, i);
         log_data(data, vars, logger);

@@ -40,7 +40,7 @@ namespace XBot
         enum class Mode
         {
             // producer-consumer mode (possibly dual thread):
-            // the user (or the provided MatLoggerManager)
+            // the user (or the provided MatAppender)
             // is responsible for keeping the buffer free                   
             producer_consumer,  
             

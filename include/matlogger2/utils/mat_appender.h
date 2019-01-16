@@ -9,7 +9,7 @@ namespace XBot
     class MatLogger2;
     
     /**
-    * @brief The MatLoggerManager class allows to flush data to disk from
+    * @brief The MatAppender class allows to flush data to disk from
     * multiple MatLogger2 loggers at once, both synchronously and from a 
     * separate flusher thread.
     * 
@@ -21,13 +21,13 @@ namespace XBot
     * Then, either call flush_available_data() in a loop, or 
 call start_flush_thread()
     */
-    class MatLoggerManager : public std::enable_shared_from_this<MatLoggerManager>
+    class MatAppender : public std::enable_shared_from_this<MatAppender>
     {
         
     public:
         
-        typedef std::weak_ptr<MatLoggerManager> WeakPtr;
-        typedef std::shared_ptr<MatLoggerManager> Ptr;
+        typedef std::weak_ptr<MatAppender> WeakPtr;
+        typedef std::shared_ptr<MatAppender> Ptr;
         
         static Ptr MakeInstance();
         
@@ -37,12 +37,12 @@ call start_flush_thread()
         
         void start_flush_thread();
         
-        ~MatLoggerManager();
+        ~MatAppender();
         
         
     private:
         
-        MatLoggerManager();
+        MatAppender();
         
         struct Impl;
         
