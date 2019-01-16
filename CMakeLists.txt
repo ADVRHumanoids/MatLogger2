@@ -81,6 +81,8 @@ install(TARGETS  ${MATIO_BACKEND_NAME}
 # Add the uninstall target
 include(AddUninstallTarget)
 
+# Generate .deb
+include(cmake/generate_deb_pkg.cmake)
 
 # Add Testing target 
 option(BUILD_TESTS "Compile ${PROJECT_NAME} tests" FALSE)
