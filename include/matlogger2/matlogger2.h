@@ -42,13 +42,26 @@ namespace XBot
     * whenever new data is available for flushing, by registering a callback 
     * through the set_on_data_available_callback() method.
     * 
-    * Multithreaded usage:
-    * The MatLogger2 class can be used inside a multi-threaded environment, 
-    * provided that the following constraints are satisfied.
-    *   1) only one "producer" thread shall call create() and add() concurrently
-    *   2) only one "consumer" thread shall call flush_available_data() concurrently
-    * The MatAppender class (see matlogger2/utils/matlogger_manager.h) provides a 
+    * Different functioning mode are available, see also set_buffer_mode()
+    * 
+    * Producer-consumer multi-threaded usage:
+    * Logged samples are pushed into a queue. The MatLogger2 class expects the 
+    * user to periodically free such a queue by consuming its elements 
+    * (flush_available_data()). If the buffer becomes full, some data can go lost.
+    * In producer-consumer mode, the MatLogger2 class can be used inside a 
+    * multi-threaded environment, provided that the following constraints are satisfied:
+    *   1) only one "producer" thread shall call create() and add()
+    *   2) only one "consumer" thread shall call flush_available_data()
+    * The MatAppender class (see matlogger2/utils/mat_appender.h) provides a 
     * ready-to-use consumer thread that periodically writes available data to disk.
+    * 
+    * Circular-buffer single-threaded usage:
+    * Logged samples are pushed into a circular buffer. In circular-buffer mode,
+    * the user CAN NOT call flush_available_data(). 
+    * If the buffer becomes full, older samples are overwritten.
+    * In circular-buffer mode, the MatLogger2 class can NOT be used inside a 
+    * multi-threaded environment (i.e. additional synchronization must be provided
+    * by the user)
     */
     class MatLogger2 
     {
@@ -121,6 +134,10 @@ namespace XBot
         template <typename Scalar>
         bool add(const std::string& var_name, const std::vector<Scalar>& data);
         
+        template <typename Iterator>
+        // this overload can allocate a temporary vector!
+        bool add(const std::string& var_name, Iterator begin, Iterator end);
+        
         bool add(const std::string& var_name, double data);
         
         /**
@@ -149,6 +166,14 @@ namespace XBot
         * @return True if all variables succeed
         */
         bool flush_to_queue_all();
+        
+        /**
+        * @brief Return a pointer to the requested variable. If it does 
+        * not exist, it tries to create one with the provided dimentions.
+        */
+        VariableBuffer * find_or_create(const std::string& var_name,    
+                                        int rows, int cols
+                                        );
         
         
         // protect non-const access to _vars
@@ -189,17 +214,23 @@ inline XBot::MatLogger2::Ptr XBot::MatLogger2::MakeLogger(Args... args)
 template <typename Derived>
 inline bool XBot::MatLogger2::add(const std::string& var_name, const Eigen::MatrixBase< Derived >& data)
 {
-    auto it = _vars.find(var_name);
+    VariableBuffer * vbuf = find_or_create(var_name, data.rows(), data.cols());
     
-    if(it == _vars.end())
-    {
-        fprintf(stderr, "Variable '%s' does not exist\n", var_name.c_str());
-        return false;
-    }
-    
-    return it->second.add_elem(data);;
+    return vbuf && vbuf->add_elem(data);
     
 }
+
+template<typename Iterator> 
+inline bool XBot::MatLogger2::add(const std::string& var_name, Iterator begin, Iterator end)
+{
+    static std::vector<double> tmp;
+    tmp.clear();
+    tmp.assign(begin, end);
+    
+    return add(var_name, tmp);
+    
+}
+
 
 template <typename Scalar>
 inline bool XBot::MatLogger2::add(const std::string& var_name, const std::vector<Scalar>& data)

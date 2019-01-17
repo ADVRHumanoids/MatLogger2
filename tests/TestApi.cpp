@@ -3,6 +3,7 @@
 #include <matlogger2/utils/mat_appender.h>
 #include <signal.h>
 #include <chrono>
+#include <list>
 
 namespace
 {
@@ -182,18 +183,24 @@ TEST_F(TestApi, checkTypes)
     ASSERT_FALSE(logger->add("mat_var", vector_valid_f));
     ASSERT_FALSE(logger->add("mat_var", vector_valid_d));
     
-    ASSERT_FALSE(logger->add("invalid_var", vector_valid_i));
+    ASSERT_TRUE(logger->add("invalid_var", vector_valid_i));
     
     std::vector<int>    stdvec_i(10);
     std::vector<uint>   stdvec_u(10);
     std::vector<float>  stdvec_f(10);
     std::vector<double> stdvec_d(10);
+    std::list<float>    stdlis_f(10);
+    std::set<int>       stdset_i(stdvec_i.begin(), stdvec_i.end());
+    std::array<double, 10>  stdarr_d;
     
     
     ASSERT_TRUE(logger->add("vector_var", stdvec_i));
     ASSERT_TRUE(logger->add("vector_var", stdvec_f));
     ASSERT_TRUE(logger->add("vector_var", stdvec_d));
     ASSERT_TRUE(logger->add("vector_var", stdvec_u));
+    ASSERT_TRUE(logger->add("vector_var", stdlis_f.begin(), stdlis_f.end()));
+    ASSERT_TRUE(logger->add("vector_var", stdset_i.begin(), stdset_i.end()));
+    ASSERT_TRUE(logger->add("vector_var", stdarr_d.begin(), stdarr_d.end()));
     
     
 }

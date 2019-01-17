@@ -175,23 +175,14 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     return true;
 }
 
-bool MatLogger2::add(const std::string& var_name, double data)
+bool MatLogger2::add(const std::string& var_name, double scalar)
 {
-    // search variable
-    auto it = _vars.find(var_name);
+    // turn scalar into a 1x1 matrix
+    Eigen::Matrix<double, 1, 1> data(scalar);
     
-    // check for existance
-    if(it == _vars.end())
-    {
-        fprintf(stderr, "Variable '%s' does not exist\n", var_name.c_str());
-        return false;
-    }
+    VariableBuffer * vbuf = find_or_create(var_name, data.rows(), data.cols());
     
-    // turn scalar into a 1x1 matrix, and add it to the buffer
-    Eigen::Matrix<double, 1, 1> elem(data);
-    it->second.add_elem(elem);
-    
-    return true;
+    return vbuf && vbuf->add_elem(data);
 }
 
 
@@ -246,6 +237,30 @@ int MatLogger2::flush_available_data()
     
     return bytes;
 }
+
+XBot::VariableBuffer * XBot::MatLogger2::find_or_create(const std::string& var_name, 
+                                                        int rows, int cols)
+{
+    // try to find var_name
+    auto it = _vars.find(var_name);
+    
+    // if we found it, return a valid pointer
+    if(it != _vars.end())
+    {
+        return &(it->second);
+    }
+    
+    // if it was not found, and we cannot create it, return nullptr
+    if(!create(var_name, rows, cols))
+    {
+         return nullptr;
+    }
+    
+    // we managed to create the variable, try again to find it
+    return find_or_create(var_name, rows, cols);
+    
+}
+
 
 bool MatLogger2::flush_to_queue_all()
 {
