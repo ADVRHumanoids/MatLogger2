@@ -7,11 +7,14 @@ extern "C" Backend * create_instance()
     return new MatioBackend;
 }
 
-bool MatioBackend::init(std::string logger_name)
+bool MatioBackend::init(std::string logger_name, 
+                        bool enable_compression)
 {
     _mat_file = Mat_CreateVer(logger_name.c_str(), 
                               nullptr, 
                               MAT_FT_MAT73);
+    
+    _compression = enable_compression ? MAT_COMPRESSION_ZLIB : MAT_COMPRESSION_NONE;
     
     return _mat_file;
 }
@@ -35,7 +38,7 @@ bool MatioBackend::write(const char* name, const double* data, int rows, int col
     int dim_append = slices == 1 ? 2 : 3;
     int ret = Mat_VarWriteAppend(_mat_file, 
                                  mat_var, 
-                                 MAT_COMPRESSION_NONE, 
+                                 _compression, 
                                  dim_append); // TBD compression from 
                                               // user
     

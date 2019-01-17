@@ -44,6 +44,13 @@ const std::string& VariableBuffer::get_name() const
     return _name;
 }
 
+XBot::MatLogger2::Options::Options():
+    enable_compression(false),
+    default_buffer_size(1e4)
+{
+}
+
+
 namespace{
     
     std::string get_file_extension(std::string file)
@@ -76,10 +83,11 @@ namespace{
     
 }
 
-MatLogger2::MatLogger2(std::string file):
+MatLogger2::MatLogger2(std::string file, Options opt):
     _file_name(file),
     _vars_mutex(new MutexImpl),
-    _buffer_mode(VariableBuffer::Mode::producer_consumer)
+    _buffer_mode(VariableBuffer::Mode::producer_consumer),
+    _opt(opt)
 {
     // get the file extension, or empty string if there is none
     std::string extension = get_file_extension(file);
@@ -102,7 +110,7 @@ extension, or no extension at all");
         throw std::runtime_error("MatLogger2: unable to create backend");
     }
     
-    if(!_backend->init(_file_name))
+    if(!_backend->init(_file_name, _opt.enable_compression))
     {
         throw std::runtime_error("MatLogger2: unable to initialize backend");
     }
@@ -135,6 +143,10 @@ void XBot::MatLogger2::set_buffer_mode(VariableBuffer::Mode buffer_mode)
 
 bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buffer_size)
 {
+    if(buffer_size == -1)
+    {
+        buffer_size = _opt.default_buffer_size;
+    }
     
     if(!(rows > 0 && cols > 0 && buffer_size > 0))
     {

@@ -72,13 +72,13 @@ namespace XBot
         typedef std::weak_ptr<MatLogger2> WeakPtr;
         typedef std::shared_ptr<MatLogger2> Ptr;
         
-        /**
-        * @brief Default buffer size for logged variables,
-        * expressed as the number of samples that the buffer
-        * can hold.
-        */
-        static const int DEFAULT_BUF_SIZE = 1e4;
-        
+        struct Options
+        {
+            bool enable_compression;
+            int default_buffer_size;
+            
+            Options();
+        };
         
         /**
         * @brief Factory method that must be used to construct a 
@@ -120,7 +120,7 @@ namespace XBot
         */
         bool create(const std::string& var_name, 
                     int rows, int cols = 1, 
-                    int buffer_size = DEFAULT_BUF_SIZE);
+                    int buffer_size = -1);
         
         
         /**
@@ -158,7 +158,8 @@ namespace XBot
         * @param file Path to mat-file. If no extension is provided, 
         * a timestamp is automatically appended.
         */
-        MatLogger2(std::string file);
+        MatLogger2(std::string file, 
+                   Options opt = Options());
         
         /**
         * @brief Force all variables to write their current block into their queue 
@@ -175,6 +176,9 @@ namespace XBot
                                         int rows, int cols
                                         );
         
+        
+        // option struct
+        Options _opt;
         
         // protect non-const access to _vars
         // producer must hold it during create(), and 

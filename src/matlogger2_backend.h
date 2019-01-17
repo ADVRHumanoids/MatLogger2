@@ -16,13 +16,15 @@ namespace XBot { namespace matlogger2 {
         
         static UniquePtr MakeInstance(std::string type);
         
-        virtual bool init(std::string logger_name) = 0;
+        virtual bool init(std::string logger_name, 
+                          bool enable_compression
+                          ) = 0;
         
         virtual bool write(const char * name,
-                   const double * data, 
-                   int rows, 
-                   int cols, 
-                   int slices) = 0;
+                           const double * data, 
+                           int rows, 
+                           int cols, 
+                           int slices) = 0;
         
         virtual bool close() = 0;
         

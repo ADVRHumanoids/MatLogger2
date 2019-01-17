@@ -13,7 +13,8 @@ namespace XBot { namespace matlogger2 {
         
     public:
         
-        virtual bool init(std::string logger_name) override;
+        virtual bool init(std::string logger_name, 
+                          bool enable_compression) override;
         
         virtual bool write(const char * name,
                    const double * data, 
@@ -26,8 +27,7 @@ namespace XBot { namespace matlogger2 {
     private:
         
         mat_t * _mat_file;
-        
-        
+        matio_compression _compression;
     };
     
 } }

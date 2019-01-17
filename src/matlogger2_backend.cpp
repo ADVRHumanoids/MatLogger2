@@ -79,7 +79,7 @@ class DummyBackend : public XBot::matlogger2::Backend
 public:
   
 virtual bool close(){return true;}
-virtual bool init(std::string logger_name){return true;}
+virtual bool init(std::string logger_name, bool compression){return true;}
 virtual bool write(const char* name, const double* data, int rows, int cols, int slices){return true;}
     
 };
