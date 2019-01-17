@@ -72,4 +72,4 @@ target_link_libraries(mytarget matlogger2::matlogger2)
  ```
  
  ## Documentation
- Header files are documented with doxygen!
+ Header files are documented with doxygen! An [**online version**](https://advrhumanoids.github.io/MatLogger2/classXBot_1_1MatLogger2.html) is also available.
