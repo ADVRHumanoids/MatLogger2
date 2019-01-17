@@ -1,0 +1,4 @@
+<map id="XBot::matlogger2::Backend" name="XBot::matlogger2::Backend">
+<area shape="rect" id="node2" href="$classDummyBackend.html" title="{DummyBackend\n||+ close()\l+ init()\l+ write()\l}" alt="" coords="5,175,124,281"/>
+<area shape="rect" id="node3" href="$classXBot_1_1matlogger2_1_1MatioBackend.html" title="{XBot::matlogger2::MatioBackend\n||+ init()\l+ write()\l+ close()\l}" alt="" coords="148,175,363,281"/>
+</map>

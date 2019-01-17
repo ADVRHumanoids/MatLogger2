@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node2" href="$classboost_1_1lockfree_1_1detail_1_1runtime__sized__ringbuffer.html" title="boost::lockfree::detail\l::runtime_sized_ringbuffer\l\&lt; T, Alloc \&gt;" alt="" coords="221,5,393,61"/>
+<area shape="rect" id="node3" href="$classboost_1_1lockfree_1_1detail_1_1ringbuffer__base.html" title="boost::lockfree::detail\l::ringbuffer_base\&lt; T \&gt;" alt="" coords="5,82,156,123"/>
+<area shape="rect" id="node4" href="$classboost_1_1lockfree_1_1detail_1_1compile__time__sized__ringbuffer.html" title="boost::lockfree::detail\l::compile_time_sized_ringbuffer\l\&lt; T, MaxSize \&gt;" alt="" coords="204,85,411,141"/>
+</map>

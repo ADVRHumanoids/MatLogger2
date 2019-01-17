@@ -1,0 +1,24 @@
+var searchData=
+[
+  ['make_5fringbuffer',['make_ringbuffer',['../structboost_1_1lockfree_1_1detail_1_1make__ringbuffer.html',1,'boost::lockfree::detail']]],
+  ['makeinstance',['MakeInstance',['../classXBot_1_1MatAppender.html#ada32ca0b6a1fe4c01d83585b6d141b5e',1,'XBot::MatAppender::MakeInstance()'],['../classXBot_1_1matlogger2_1_1Backend.html#a6be9b01ea5ab8da0de9eb62f58fcc385',1,'XBot::matlogger2::Backend::MakeInstance()']]],
+  ['makelogger',['MakeLogger',['../classXBot_1_1MatLogger2.html#a77e8206b36d873ea1950a79273d372c0',1,'XBot::MatLogger2::MakeLogger(Args...args)'],['../classXBot_1_1MatLogger2.html#a84ecac1f0c2bb380fe9f024a50b39d52',1,'XBot::MatLogger2::MakeLogger(Args...args)']]],
+  ['mapx',['MapX',['../matlogger2_8cpp.html#a4bd2de62eb7db7b7e0552f1df7d331d0',1,'matlogger2.cpp']]],
+  ['mat_5fappender_2ecpp',['mat_appender.cpp',['../mat__appender_8cpp.html',1,'']]],
+  ['mat_5fappender_2eh',['mat_appender.h',['../mat__appender_8h.html',1,'']]],
+  ['matappender',['MatAppender',['../classXBot_1_1MatAppender.html',1,'XBot']]],
+  ['matio_5fbackend_2ecpp',['matio_backend.cpp',['../matio__backend_8cpp.html',1,'']]],
+  ['matio_5fbackend_2eh',['matio_backend.h',['../matio__backend_8h.html',1,'']]],
+  ['matiobackend',['MatioBackend',['../classXBot_1_1matlogger2_1_1MatioBackend.html',1,'XBot::matlogger2']]],
+  ['matlogger2',['MatLogger2',['../classXBot_1_1MatLogger2.html',1,'XBot']]],
+  ['matlogger2_2ecpp',['matlogger2.cpp',['../matlogger2_8cpp.html',1,'']]],
+  ['matlogger2_2eh',['matlogger2.h',['../matlogger2_8h.html',1,'']]],
+  ['matlogger2_5fbackend_2ecpp',['matlogger2_backend.cpp',['../matlogger2__backend_8cpp.html',1,'']]],
+  ['matlogger2_5fbackend_2eh',['matlogger2_backend.h',['../matlogger2__backend_8h.html',1,'']]],
+  ['max_5fnumber_5fof_5felements',['max_number_of_elements',['../classboost_1_1lockfree_1_1detail_1_1compile__time__sized__ringbuffer.html#a52b37426641d9fb8213c723ede88e2c4',1,'boost::lockfree::detail::compile_time_sized_ringbuffer::max_number_of_elements()'],['../classboost_1_1lockfree_1_1detail_1_1runtime__sized__ringbuffer.html#a7ac0d4f1b64ed242a868a3417927d5ff',1,'boost::lockfree::detail::runtime_sized_ringbuffer::max_number_of_elements()']]],
+  ['mode',['Mode',['../classXBot_1_1VariableBuffer.html#aa376dceb9a0abc1e4c2c36904a78c9a9',1,'XBot::VariableBuffer']]],
+  ['mutex',['mutex',['../classXBot_1_1matlogger2_1_1mutex.html',1,'XBot::matlogger2']]],
+  ['mutex',['mutex',['../classXBot_1_1matlogger2_1_1mutex.html#a2c58561a7f6f29b55a26ef0ed8de1550',1,'XBot::matlogger2::mutex']]],
+  ['muteximpl',['MutexImpl',['../classMatLogger2_1_1MutexImpl.html',1,'XBot::MatLogger2']]],
+  ['mutextype',['MutexType',['../namespaceXBot_1_1matlogger2.html#a544bf74a222994a530ae4eaf760b82ca',1,'XBot::matlogger2']]]
+];

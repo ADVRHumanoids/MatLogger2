@@ -1,0 +1,14 @@
+var searchData=
+[
+  ['set_5fbuffer_5fmode',['set_buffer_mode',['../classXBot_1_1MatLogger2.html#a82549a659f84082aca4c9c9ed83eed9a',1,'XBot::MatLogger2::set_buffer_mode()'],['../classXBot_1_1VariableBuffer.html#a7be579d78a8823769a6296b17b17cd74',1,'XBot::VariableBuffer::set_buffer_mode()']]],
+  ['set_5fon_5fblock_5favailable',['set_on_block_available',['../classXBot_1_1VariableBuffer.html#a62c1cbb1cb9bfddbb103b6d745a2b5cf',1,'XBot::VariableBuffer']]],
+  ['set_5fon_5fdata_5favailable_5fcallback',['set_on_data_available_callback',['../classXBot_1_1MatLogger2.html#a68c7bf3b9fe610c48358c13959eecf41',1,'XBot::MatLogger2']]],
+  ['size',['Size',['../classVariableBuffer_1_1QueueImpl.html#ac4b7833c591c29bb2e2df9a3cf1756d8',1,'VariableBuffer::QueueImpl']]],
+  ['size_5ft',['size_t',['../classboost_1_1lockfree_1_1detail_1_1ringbuffer__base.html#a58226693c4d2abc9cdda9f45e689e9c8',1,'boost::lockfree::detail::ringbuffer_base']]],
+  ['size_5ftype',['size_type',['../classboost_1_1lockfree_1_1spsc__queue.html#a4b9a002eadd94a26bf664650c88869d9',1,'boost::lockfree::spsc_queue']]],
+  ['spsc_5fqueue',['spsc_queue',['../classboost_1_1lockfree_1_1spsc__queue.html',1,'boost::lockfree']]],
+  ['spsc_5fqueue',['spsc_queue',['../classboost_1_1lockfree_1_1spsc__queue.html#ab12d995e30202b18e9ea01cf359573dd',1,'boost::lockfree::spsc_queue::spsc_queue(void)'],['../classboost_1_1lockfree_1_1spsc__queue.html#ab6e5fe25d9de4ca6a065db432919fbd0',1,'boost::lockfree::spsc_queue::spsc_queue(const T &amp;t)'],['../classboost_1_1lockfree_1_1spsc__queue.html#af02c84b64aa2553195922f073893ac78',1,'boost::lockfree::spsc_queue::spsc_queue(typename allocator::template rebind&lt; U &gt;::other const &amp;alloc)'],['../classboost_1_1lockfree_1_1spsc__queue.html#a5a515b5fca722c7a858727ac7e60c002',1,'boost::lockfree::spsc_queue::spsc_queue(allocator const &amp;alloc)'],['../classboost_1_1lockfree_1_1spsc__queue.html#acab14b862809da0758e9d28da7653e91',1,'boost::lockfree::spsc_queue::spsc_queue(size_type element_count)'],['../classboost_1_1lockfree_1_1spsc__queue.html#a437826ca231ca6da78626ed5392e93e7',1,'boost::lockfree::spsc_queue::spsc_queue(size_type element_count, typename allocator::template rebind&lt; U &gt;::other const &amp;alloc)'],['../classboost_1_1lockfree_1_1spsc__queue.html#a1240f36a858b92713d87898f3874f009',1,'boost::lockfree::spsc_queue::spsc_queue(size_type element_count, allocator_arg const &amp;alloc)']]],
+  ['spsc_5fqueue_3c_20bufferblock_3a_3aptr_20_3e',['spsc_queue&lt; BufferBlock::Ptr &gt;',['../classboost_1_1lockfree_1_1spsc__queue.html',1,'boost::lockfree']]],
+  ['spsc_5fqueue_5flogger_2ehpp',['spsc_queue_logger.hpp',['../spsc__queue__logger_8hpp.html',1,'']]],
+  ['start_5fflush_5fthread',['start_flush_thread',['../classXBot_1_1MatAppender.html#a15d155c4404fbd9389f7c69bfc9c6702',1,'XBot::MatAppender']]]
+];

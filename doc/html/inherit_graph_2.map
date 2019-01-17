@@ -1,0 +1,4 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node2" href="$classboost_1_1lockfree_1_1spsc__queue.html" title="The spsc_queue class provides a single&#45;writer/single&#45;reader fifo queue, pushing and popping is wait&#45;f..." alt="" coords="180,5,324,47"/>
+<area shape="rect" id="node3" href="$classboost_1_1lockfree_1_1spsc__queue.html" title="boost::lockfree::spsc\l_queue\&lt; BufferBlock::Ptr \&gt;" alt="" coords="161,71,343,112"/>
+</map>
