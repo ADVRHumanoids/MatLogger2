@@ -84,6 +84,9 @@ include(AddUninstallTarget)
 # Generate .deb
 include(cmake/generate_deb_pkg.cmake)
 
+# Generate docs
+add_subdirectory(doc/)
+
 # Add Testing target 
 option(BUILD_TESTS "Compile ${PROJECT_NAME} tests" FALSE)
 
