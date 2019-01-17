@@ -15,6 +15,12 @@ Standard cmake workflow:
   
 The binary release has been tested only with Ubuntu 16.04
 
+## Linking against MatLogger2
+```cmake
+find_package(matlogger2 REQUIRED)
+target_link_libraries(mytarget matlogger2::matlogger2)
+```
+
  ## Quick start
  ### Circular-buffer mode
  ```c++
