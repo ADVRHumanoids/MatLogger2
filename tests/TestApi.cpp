@@ -185,7 +185,7 @@ TEST_F(TestApi, checkTypes)
     
     ASSERT_TRUE(logger->add("invalid_var", vector_valid_i));
     
-    std::vector<int>    stdvec_i(10);
+    std::vector<int>    stdvec_i  = {1,2,3,4,5,6,7,8,9,0};
     std::vector<uint>   stdvec_u(10);
     std::vector<float>  stdvec_f(10);
     std::vector<double> stdvec_d(10);
