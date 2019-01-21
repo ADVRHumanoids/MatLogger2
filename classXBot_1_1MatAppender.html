@@ -136,23 +136,28 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa720afb37e318702b467ca65977ccb11"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1MatAppender.html#aa720afb37e318702b467ca65977ccb11">add_logger</a> (std::shared_ptr&lt; <a class="el" href="classXBot_1_1MatLogger2.html">MatLogger2</a> &gt; logger)</td></tr>
+<tr class="memdesc:aa720afb37e318702b467ca65977ccb11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a MAT-logger to the appender.  <a href="#aa720afb37e318702b467ca65977ccb11">More...</a><br /></td></tr>
 <tr class="separator:aa720afb37e318702b467ca65977ccb11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af689d4f5f5bebf0d41254e8cc6d19682"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1MatAppender.html#af689d4f5f5bebf0d41254e8cc6d19682">flush_available_data</a> ()</td></tr>
+<tr class="memdesc:af689d4f5f5bebf0d41254e8cc6d19682"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flush buffers from all registered loggers to disk.  <a href="#af689d4f5f5bebf0d41254e8cc6d19682">More...</a><br /></td></tr>
 <tr class="separator:af689d4f5f5bebf0d41254e8cc6d19682"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15d155c4404fbd9389f7c69bfc9c6702"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1MatAppender.html#a15d155c4404fbd9389f7c69bfc9c6702">start_flush_thread</a> ()</td></tr>
+<tr class="memdesc:a15d155c4404fbd9389f7c69bfc9c6702"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a thread that will automatically flush data to disk whenever enough data is available, or some buffer is about to fill.  <a href="#a15d155c4404fbd9389f7c69bfc9c6702">More...</a><br /></td></tr>
 <tr class="separator:a15d155c4404fbd9389f7c69bfc9c6702"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3d1aa15ddd72a344951041666ce36ae"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1MatAppender.html#ab3d1aa15ddd72a344951041666ce36ae">~MatAppender</a> ()</td></tr>
+<tr class="memdesc:ab3d1aa15ddd72a344951041666ce36ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor will join with the flusher thread if it was spawned by the user.  <a href="#ab3d1aa15ddd72a344951041666ce36ae">More...</a><br /></td></tr>
 <tr class="separator:ab3d1aa15ddd72a344951041666ce36ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ada32ca0b6a1fe4c01d83585b6d141b5e"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classXBot_1_1MatAppender.html#a2c17ffa611b2b34689cbfb6dd15b723e">Ptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1MatAppender.html#ada32ca0b6a1fe4c01d83585b6d141b5e">MakeInstance</a> ()</td></tr>
+<tr class="memdesc:ada32ca0b6a1fe4c01d83585b6d141b5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a shared pointer to a new <a class="el" href="classXBot_1_1MatAppender.html" title="The MatAppender class allows to flush data to disk from multiple MatLogger2 loggers at once...">MatAppender</a> object.  <a href="#ada32ca0b6a1fe4c01d83585b6d141b5e">More...</a><br /></td></tr>
 <tr class="separator:ada32ca0b6a1fe4c01d83585b6d141b5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="classXBot_1_1MatAppender.html" title="The MatAppender class allows to flush data to disk from multiple MatLogger2 loggers at once...">MatAppender</a> class allows to flush data to disk from multiple <a class="el" href="classXBot_1_1MatLogger2.html" title="The MatLogger2 class allows the user to save numeric variables (scalars, vectors, matrices) to HDF5 M...">MatLogger2</a> loggers at once, both synchronously and from a separate flusher thread. </p>
-<p>Construction: use the factory method <a class="el" href="classXBot_1_1MatAppender.html#ada32ca0b6a1fe4c01d83585b6d141b5e">MakeInstance()</a></p>
-<p>Usage: register instances of <a class="el" href="classXBot_1_1MatLogger2.html" title="The MatLogger2 class allows the user to save numeric variables (scalars, vectors, matrices) to HDF5 M...">MatLogger2</a> type with the <a class="el" href="classXBot_1_1MatAppender.html#aa720afb37e318702b467ca65977ccb11">add_logger()</a> method. Then, either call <a class="el" href="classXBot_1_1MatAppender.html#af689d4f5f5bebf0d41254e8cc6d19682">flush_available_data()</a> in a loop, or call <a class="el" href="classXBot_1_1MatAppender.html#a15d155c4404fbd9389f7c69bfc9c6702">start_flush_thread()</a> </p>
+<p>Construction: use the factory method <a class="el" href="classXBot_1_1MatAppender.html#ada32ca0b6a1fe4c01d83585b6d141b5e" title="Returns a shared pointer to a new MatAppender object. ">MakeInstance()</a></p>
+<p>Usage: register instances of <a class="el" href="classXBot_1_1MatLogger2.html" title="The MatLogger2 class allows the user to save numeric variables (scalars, vectors, matrices) to HDF5 M...">MatLogger2</a> type with the <a class="el" href="classXBot_1_1MatAppender.html#aa720afb37e318702b467ca65977ccb11" title="Register a MAT-logger to the appender. ">add_logger()</a> method. Then, either call <a class="el" href="classXBot_1_1MatAppender.html#af689d4f5f5bebf0d41254e8cc6d19682" title="Flush buffers from all registered loggers to disk. ">flush_available_data()</a> in a loop, or call <a class="el" href="classXBot_1_1MatAppender.html#a15d155c4404fbd9389f7c69bfc9c6702" title="Spawn a thread that will automatically flush data to disk whenever enough data is available...">start_flush_thread()</a>. </p>
 
 <p>Definition at line <a class="el" href="mat__appender_8h_source.html#l00024">24</a> of file <a class="el" href="mat__appender_8h_source.html">mat_appender.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
@@ -198,7 +203,9 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="mat__appender_8cpp_source.html#l00282">282</a> of file <a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a>.</p>
+<p>Destructor will join with the flusher thread if it was spawned by the user. </p>
+
+<p>Definition at line <a class="el" href="mat__appender_8cpp_source.html#l00271">271</a> of file <a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a>.</p>
 
 </div>
 </div>
@@ -216,9 +223,13 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Register a MAT-logger to the appender. </p>
+<p>Note that this class will internally store a <b>weak</b> pointer to the provided logger. This means that the logger may be destructed any time without problems.</p>
+<dl class="section return"><dt>Returns</dt><dd>True if the logger is not null and it was not already registered. </dd></dl>
 <p>!! This is the main synchronization point between loggers and the flusher </p>
 
-<p>Definition at line <a class="el" href="mat__appender_8cpp_source.html#l00129">129</a> of file <a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a>.</p>
+<p>Definition at line <a class="el" href="mat__appender_8cpp_source.html#l00118">118</a> of file <a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a>.</p>
 
 </div>
 </div>
@@ -234,6 +245,10 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Flush buffers from all registered loggers to disk. </p>
+<p>Caution: do NOT call this method if <a class="el" href="classXBot_1_1MatAppender.html#a15d155c4404fbd9389f7c69bfc9c6702" title="Spawn a thread that will automatically flush data to disk whenever enough data is available...">start_flush_thread()</a> was called!</p>
+<dl class="section return"><dt>Returns</dt><dd>Amount of flushed bytes </dd></dl>
 
 </div>
 </div>
@@ -258,6 +273,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Returns a shared pointer to a new <a class="el" href="classXBot_1_1MatAppender.html" title="The MatAppender class allows to flush data to disk from multiple MatLogger2 loggers at once...">MatAppender</a> object. </p>
+
 <p>Definition at line <a class="el" href="mat__appender_8cpp_source.html#l00067">67</a> of file <a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a>.</p>
 
 </div>
@@ -275,18 +292,20 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="mat__appender_8cpp_source.html#l00199">199</a> of file <a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a>.</p>
+<p>Spawn a thread that will automatically flush data to disk whenever enough data is available, or some buffer is about to fill. </p>
+
+<p>Definition at line <a class="el" href="mat__appender_8cpp_source.html#l00188">188</a> of file <a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>/home/arturo/Code/advr-superbuild/external/MatLogger2/include/matlogger2/utils/<a class="el" href="mat__appender_8h_source.html">mat_appender.h</a></li>
-<li>/home/arturo/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a></li>
+<li>/home/alaurenzi/Code/advr-superbuild/external/MatLogger2/include/matlogger2/utils/<a class="el" href="mat__appender_8h_source.html">mat_appender.h</a></li>
+<li>/home/alaurenzi/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="mat__appender_8cpp_source.html">mat_appender.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jan 17 2019 12:19:46 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jan 21 2019 23:18:08 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

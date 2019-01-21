@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['thread_2eh',['thread.h',['../thread_8h.html',1,'']]],
-  ['thread_5freplacement_2eh',['thread_replacement.h',['../thread__replacement_8h.html',1,'']]]
+  ['spsc_5fqueue_5flogger_2ehpp',['spsc_queue_logger.hpp',['../spsc__queue__logger_8hpp.html',1,'']]]
 ];

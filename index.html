@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>MatLogger2: Main Page</title>
+<title>MatLogger2: MatLogger2</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -78,13 +78,31 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="headertitle">
-<div class="title">MatLogger2 Documentation</div>  </div>
+<div class="title">MatLogger2 </div>  </div>
 </div><!--header-->
 <div class="contents">
-</div><!-- contents -->
+<div class="textblock"><p>Library for logging of numeric data to HDF5 MAT-files, which is RT-safe and multithreaded.</p>
+<h2>Building MatLogger2 from source</h2>
+<p>Standard cmake workflow:</p><ul>
+<li>git clone the repo to <em>SOURCE_DIR</em></li>
+<li>create a build folder <em>BUILD_DIR</em></li>
+<li>cd <em>BUILD_DIR</em> &amp;&amp; cmake <em>SOURCE_DIR</em></li>
+<li>make</li>
+<li>make install</li>
+</ul>
+<h2>Installing the binary release</h2>
+<ul>
+<li>cd <em>SOURCE_DIR</em>/release</li>
+<li>sudo dpkg -i matlogger2-X.Y.Z-Linux.deb</li>
+</ul>
+<p>The binary release has been tested only with Ubuntu 16.04</p>
+<p>## Linking against MatLogger2 </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;find_package(matlogger2 REQUIRED)</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;target_link_libraries(mytarget matlogger2::matlogger2)</div></div><!-- fragment --><h2>Quick start</h2>
+<p>### Circular-buffer mode </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;{c++}</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; #include &lt;matlogger2/matlogger2.h&gt;</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;</div><div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160; int main()</div><div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160; {</div><div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;    auto logger = XBot::MatLogger2::MakeLogger(&quot;/tmp/my_log&quot;);</div><div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;    logger-&gt;set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);</div><div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;</div><div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;    for(int i = 0; i &lt; 1e5; i++)</div><div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;    {</div><div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;        Eigen::VectorXd vec(10);</div><div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;        Eigen::MatrixXd mat(6,8);</div><div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;</div><div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;        logger-&gt;add(&quot;my_vec_var&quot;, vec);</div><div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        logger-&gt;add(&quot;my_scalar_var&quot;, M_PI);</div><div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;        logger-&gt;add(&quot;my_mat_var&quot;, mat);</div><div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;    }</div><div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;</div><div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; } // destructor flushes to disk</div></div><!-- fragment --><p>### Producer-consumer mode (default) </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;{c++}</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; #include &lt;matlogger2/matlogger2.h&gt;</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; #include &lt;matlogger2/utils/mat_appender.h&gt;</div><div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;</div><div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160; int main()</div><div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160; {</div><div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;    auto logger = XBot::MatLogger2::MakeLogger(&quot;/tmp/my_log&quot;);</div><div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;    auto appender = XBot::MatAppender::MakeInstance();</div><div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;    appender-&gt;add_logger(logger);</div><div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;    appender-&gt;start_flush_thread();</div><div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;</div><div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;    for(int i = 0; i &lt; 1e5; i++)</div><div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;    {</div><div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;        Eigen::VectorXd vec(10);</div><div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        Eigen::MatrixXd mat(6,8);</div><div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;</div><div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;        logger-&gt;add(&quot;my_vec_var&quot;, vec);</div><div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;        logger-&gt;add(&quot;my_scalar_var&quot;, M_PI);</div><div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;        logger-&gt;add(&quot;my_mat_var&quot;, mat);</div><div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;</div><div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;        usleep(1000);</div><div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    }</div><div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;</div><div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; }</div></div><!-- fragment --><h2>Documentation</h2>
+<p>Header files are documented with doxygen! An <a href="https://advrhumanoids.github.io/MatLogger2/classXBot_1_1MatLogger2.html"><b>online version</b></a> is also available. </p>
+</div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jan 17 2019 12:19:46 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jan 21 2019 23:18:08 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

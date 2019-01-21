@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['default_5fbuf_5fsize',['DEFAULT_BUF_SIZE',['../classXBot_1_1MatLogger2.html#af872fd9d10c0b679f157dae3452e2264',1,'XBot::MatLogger2']]],
+  ['default_5fbuffer_5fsize',['default_buffer_size',['../structXBot_1_1MatLogger2_1_1Options.html#a2e6334c338941fdfbf674c9ef24da1ea',1,'XBot::MatLogger2::Options']]],
   ['dummybackend',['DummyBackend',['../classDummyBackend.html',1,'']]]
 ];

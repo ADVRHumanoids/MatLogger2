@@ -117,8 +117,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a528e2b4bac153e89b9595cd16d1d48d8"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1matlogger2_1_1MatioBackend.html#a528e2b4bac153e89b9595cd16d1d48d8">init</a> (std::string logger_name) override</td></tr>
-<tr class="separator:a528e2b4bac153e89b9595cd16d1d48d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b1836b41510d98c4a6384ef2591367f"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1matlogger2_1_1MatioBackend.html#a7b1836b41510d98c4a6384ef2591367f">init</a> (std::string logger_name, bool enable_compression) override</td></tr>
+<tr class="separator:a7b1836b41510d98c4a6384ef2591367f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0414856ed72ebe79a92c36ff82ce8d4f"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1matlogger2_1_1MatioBackend.html#a0414856ed72ebe79a92c36ff82ce8d4f">write</a> (const char *name, const double *data, int rows, int cols, int slices) override</td></tr>
 <tr class="separator:a0414856ed72ebe79a92c36ff82ce8d4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a042971c5c320d121c527c803593d09a1"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classXBot_1_1matlogger2_1_1MatioBackend.html#a042971c5c320d121c527c803593d09a1">close</a> () override</td></tr>
@@ -162,11 +162,11 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classXBot_1_1matlogger2_1_1Backend.html#a1cf996eb28a9f2d4cf05c5d447563e2a">XBot::matlogger2::Backend</a>.</p>
 
-<p>Definition at line <a class="el" href="matio__backend_8cpp_source.html#l00054">54</a> of file <a class="el" href="matio__backend_8cpp_source.html">matio_backend.cpp</a>.</p>
+<p>Definition at line <a class="el" href="matio__backend_8cpp_source.html#l00057">57</a> of file <a class="el" href="matio__backend_8cpp_source.html">matio_backend.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a528e2b4bac153e89b9595cd16d1d48d8"></a>
+<a class="anchor" id="a7b1836b41510d98c4a6384ef2591367f"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -177,8 +177,18 @@ Additional Inherited Members</h2></td></tr>
           <td class="memname">bool MatioBackend::init </td>
           <td>(</td>
           <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>logger_name</em></td><td>)</td>
+          <td class="paramname"><em>logger_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable_compression</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -188,7 +198,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classXBot_1_1matlogger2_1_1Backend.html#ad406359587d6f791ea0e69b60bf78e2e">XBot::matlogger2::Backend</a>.</p>
+<p>Implements <a class="el" href="classXBot_1_1matlogger2_1_1Backend.html#aa9d64a92898cbc5b3a7affedad16349f">XBot::matlogger2::Backend</a>.</p>
 
 <p>Definition at line <a class="el" href="matio__backend_8cpp_source.html#l00010">10</a> of file <a class="el" href="matio__backend_8cpp_source.html">matio_backend.cpp</a>.</p>
 
@@ -246,18 +256,18 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classXBot_1_1matlogger2_1_1Backend.html#aa270a4d013aa67635246184915c6e460">XBot::matlogger2::Backend</a>.</p>
 
-<p>Definition at line <a class="el" href="matio__backend_8cpp_source.html#l00019">19</a> of file <a class="el" href="matio__backend_8cpp_source.html">matio_backend.cpp</a>.</p>
+<p>Definition at line <a class="el" href="matio__backend_8cpp_source.html#l00022">22</a> of file <a class="el" href="matio__backend_8cpp_source.html">matio_backend.cpp</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>/home/arturo/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="matio__backend_8h_source.html">matio_backend.h</a></li>
-<li>/home/arturo/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="matio__backend_8cpp_source.html">matio_backend.cpp</a></li>
+<li>/home/alaurenzi/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="matio__backend_8h_source.html">matio_backend.h</a></li>
+<li>/home/alaurenzi/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="matio__backend_8cpp_source.html">matio_backend.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jan 17 2019 12:19:46 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jan 21 2019 23:18:08 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

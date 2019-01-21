@@ -113,8 +113,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae0796d250b54a602e7a8f7643f771098"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDummyBackend.html#ae0796d250b54a602e7a8f7643f771098">close</a> ()</td></tr>
 <tr class="separator:ae0796d250b54a602e7a8f7643f771098"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1391b4f2b4b2ebf1a709bd6076148fa"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDummyBackend.html#ab1391b4f2b4b2ebf1a709bd6076148fa">init</a> (std::string logger_name)</td></tr>
-<tr class="separator:ab1391b4f2b4b2ebf1a709bd6076148fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc044fbed1f959b5219547c65384a880"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDummyBackend.html#adc044fbed1f959b5219547c65384a880">init</a> (std::string logger_name, bool compression)</td></tr>
+<tr class="separator:adc044fbed1f959b5219547c65384a880"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae09e55591deb669ac825ee0332a05c24"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDummyBackend.html#ae09e55591deb669ac825ee0332a05c24">write</a> (const char *name, const double *data, int rows, int cols, int slices)</td></tr>
 <tr class="separator:ae09e55591deb669ac825ee0332a05c24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -160,7 +160,7 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ab1391b4f2b4b2ebf1a709bd6076148fa"></a>
+<a class="anchor" id="adc044fbed1f959b5219547c65384a880"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -171,8 +171,18 @@ Additional Inherited Members</h2></td></tr>
           <td class="memname">virtual bool DummyBackend::init </td>
           <td>(</td>
           <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>logger_name</em></td><td>)</td>
+          <td class="paramname"><em>logger_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>compression</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -182,7 +192,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classXBot_1_1matlogger2_1_1Backend.html#ad406359587d6f791ea0e69b60bf78e2e">XBot::matlogger2::Backend</a>.</p>
+<p>Implements <a class="el" href="classXBot_1_1matlogger2_1_1Backend.html#aa9d64a92898cbc5b3a7affedad16349f">XBot::matlogger2::Backend</a>.</p>
 
 <p>Definition at line <a class="el" href="matlogger2__backend_8cpp_source.html#l00082">82</a> of file <a class="el" href="matlogger2__backend_8cpp_source.html">matlogger2_backend.cpp</a>.</p>
 
@@ -245,12 +255,12 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/arturo/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="matlogger2__backend_8cpp_source.html">matlogger2_backend.cpp</a></li>
+<li>/home/alaurenzi/Code/advr-superbuild/external/MatLogger2/src/<a class="el" href="matlogger2__backend_8cpp_source.html">matlogger2_backend.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jan 17 2019 12:19:46 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jan 21 2019 23:18:08 for MatLogger2 by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['padding1',['padding1',['../classboost_1_1lockfree_1_1detail_1_1ringbuffer__base.html#a9937108c2b3e83a504c72e1896271c74',1,'boost::lockfree::detail::ringbuffer_base']]],
-  ['padding_5fsize',['padding_size',['../classboost_1_1lockfree_1_1detail_1_1ringbuffer__base.html#aa9951288de0d976baaef90e32e43bf40',1,'boost::lockfree::detail::ringbuffer_base']]]
+  ['new_5favailable_5fbytes',['new_available_bytes',['../structXBot_1_1VariableBuffer_1_1BufferInfo.html#ae5563c999dc1d21d04c3e8b28e0a8952',1,'XBot::VariableBuffer::BufferInfo']]],
+  ['num_5fblocks',['NUM_BLOCKS',['../classVariableBuffer_1_1QueueImpl.html#a29528dcab3262816ff308f50eebd9155',1,'VariableBuffer::QueueImpl']]]
 ];

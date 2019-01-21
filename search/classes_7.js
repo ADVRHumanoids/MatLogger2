@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['spsc_5fqueue',['spsc_queue',['../classboost_1_1lockfree_1_1spsc__queue.html',1,'boost::lockfree']]],
-  ['spsc_5fqueue_3c_20bufferblock_3a_3aptr_20_3e',['spsc_queue&lt; BufferBlock::Ptr &gt;',['../classboost_1_1lockfree_1_1spsc__queue.html',1,'boost::lockfree']]]
+  ['ringbuffer_5fbase',['ringbuffer_base',['../classboost_1_1lockfree_1_1detail_1_1ringbuffer__base.html',1,'boost::lockfree::detail']]],
+  ['runtime_5fsized_5fringbuffer',['runtime_sized_ringbuffer',['../classboost_1_1lockfree_1_1detail_1_1runtime__sized__ringbuffer.html',1,'boost::lockfree::detail']]]
 ];
