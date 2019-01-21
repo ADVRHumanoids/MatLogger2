@@ -28,7 +28,7 @@ target_link_libraries(mytarget matlogger2::matlogger2)
  
  int main()
  {
-    auto logger = XBot::MatLogger2::MakeLogger("/tmp/my_log");
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/my_log"); // date-time automatically appended
     logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
     
     for(int i = 0; i < 1e5; i++)
@@ -51,7 +51,7 @@ target_link_libraries(mytarget matlogger2::matlogger2)
  
  int main()
  {
-    auto logger = XBot::MatLogger2::MakeLogger("/tmp/my_log");
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/my_log.mat"); // extension provided -> date-time NOT appended
     auto appender = XBot::MatAppender::MakeInstance();
     appender->add_logger(logger);
     appender->start_flush_thread();
@@ -69,6 +69,39 @@ target_link_libraries(mytarget matlogger2::matlogger2)
     }
     
  }
+ ```
+ 
+ ### Custom buffer size and compression
+ ```c++
+ #include <matlogger2/matlogger2.h>
+ 
+ int main()
+ {
+    XBot::MatLogger2::Options opt;
+    opt.default_buffer_size = 1e4; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+                                   // this can be computationally expensive
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/my_log", opt);
+    
+    logger->create("my_vec_var", 10); // this pre-allocates the buffer with default buffer size
+    
+    logger->create("my_mat_var", 6, 8, 1e3); // custom buffer size can be set variable-wise
+    
+    for(int i = 0; i < 1e5; i++)
+    {
+        Eigen::VectorXd vec(10);
+        Eigen::MatrixXd mat(6,8);
+        
+        logger->add("my_vec_var", vec);
+        logger->add("my_scalar_var", M_PI);
+        logger->add("my_mat_var", mat);
+        
+        usleep(1000);
+    }
+    
+    logger.reset(); // manually destroy the logger in order to flush to disk
+    
+ } 
  ```
  
  ## Documentation
