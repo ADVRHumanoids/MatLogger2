@@ -92,6 +92,17 @@ namespace XBot
         static Ptr MakeLogger(Args... args);
         
         /**
+         * @brief Returns the full path associated with this logger object
+         */
+        const std::string& get_filename() const;
+        
+        /**
+         * @brief Returns the MatLogger2::Options struct associated with this 
+         * object
+         */
+        Options get_options() const;
+        
+        /**
         * @brief Set the callback that is invoked whenever new data is available 
         * for writing to disk.
         */
@@ -114,7 +125,7 @@ namespace XBot
         * @param rows Sample row size
         * @param cols Sample column size (defaults to 1)
         * @param buffer_size Buffer size in terms of number of elements 
-        * (defaults to DEFAULT_BUF_SIZE)
+        * (defaults to get_options().default_buffer_size)
         * @return True on success (variable name is unique, 
         * dimensions and buffer_size are > 0)
         */
@@ -135,7 +146,7 @@ namespace XBot
         bool add(const std::string& var_name, const std::vector<Scalar>& data);
         
         template <typename Iterator>
-        // this overload can allocate a temporary vector!
+        // this overload may allocate a temporary vector!
         bool add(const std::string& var_name, Iterator begin, Iterator end);
         
         bool add(const std::string& var_name, double data);
@@ -147,6 +158,10 @@ namespace XBot
         */
         int flush_available_data();
         
+        /**
+         * @brief Destructor flushes all buffers to disk, then releases
+         * any resource connected with the underlying MAT-file
+         */
         ~MatLogger2();
         
     private:

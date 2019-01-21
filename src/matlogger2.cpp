@@ -116,6 +116,16 @@ extension, or no extension at all");
     }
 }
 
+const std::string& MatLogger2::get_filename() const
+{
+    return _file_name;
+}
+
+MatLogger2::Options MatLogger2::get_options() const
+{
+    return _opt;
+}
+
 void MatLogger2::set_on_data_available_callback(VariableBuffer::CallbackType callback)
 {
     std::lock_guard<MutexType> lock(_vars_mutex->get());    
@@ -169,7 +179,7 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     
     // compute block size from required buffer_size and number of blocks in
     // queue
-    int block_size = buffer_size / VariableBuffer::NumBlocks();
+    int block_size = std::max(1, buffer_size / VariableBuffer::NumBlocks());
     
     printf("Created variable '%s' (%d blocks, %d elem each)\n", 
            var_name.c_str(), VariableBuffer::NumBlocks(), block_size);
@@ -290,9 +300,6 @@ MatLogger2::~MatLogger2()
     /* inside this constructor, we have the guarantee that the flusher thread
     * (if running) is not using this object
     */
-    
-    
-    printf("%s\n", __PRETTY_FUNCTION__);
     
     // de-register any callback
     set_on_data_available_callback(VariableBuffer::CallbackType());

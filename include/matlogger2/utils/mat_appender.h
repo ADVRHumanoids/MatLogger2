@@ -18,8 +18,8 @@ namespace XBot
     * 
     * Usage:
     * register instances of MatLogger2 type with the add_logger() method.
-    * Then, either call flush_available_data() in a loop, or 
-call start_flush_thread()
+    * Then, either call flush_available_data() in a loop, or call 
+    * start_flush_thread().
     */
     class MatAppender : public std::enable_shared_from_this<MatAppender>
     {
@@ -29,16 +29,40 @@ call start_flush_thread()
         typedef std::weak_ptr<MatAppender> WeakPtr;
         typedef std::shared_ptr<MatAppender> Ptr;
         
+        /**
+         * @brief Returns a shared pointer to a new MatAppender object
+         */
         static Ptr MakeInstance();
         
+        /**
+         * @brief Register a MAT-logger to the appender. Note that
+         * this class will internally store a **weak** pointer to the 
+         * provided logger. This means that the logger may be destructed
+         * any time without problems.
+         * 
+         * @return True if the logger is not null and it was not already registered.
+         */
         bool add_logger(std::shared_ptr<MatLogger2> logger);
         
+        /**
+         * @brief Flush buffers from all registered loggers to disk. 
+         * Caution: do NOT call this method if start_flush_thread() was called!
+         * 
+         * @return Amount of flushed bytes
+         */
         int flush_available_data();
         
+        /**
+         * @brief Spawn a thread that will automatically flush data to disk whenever
+         * enough data is available, or some buffer is about to fill.
+         */
         void start_flush_thread();
         
+        /**
+         * @brief Destructor will join with the flusher thread if it was spawned
+         * by the user.
+         */
         ~MatAppender();
-        
         
     private:
         

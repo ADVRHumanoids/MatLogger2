@@ -106,17 +106,6 @@ void MatAppender::Impl::on_block_available(VariableBuffer::BufferInfo buf_info)
         _flush_thread_wake_up = true; 
         _cond.notify_one(); 
         
-        /* Note that we modify the condition _flush_thread_wake_up without
-        * holding the mutex. This way we ensure that the producer thread won't
-        * block. However, notifications may get lost, as follows:
-        *   - flusher thread checks the predicate, which returns false
-        *   - the condition is set to true and notify() is called
-        *   - flusher thread misses the notification, and goes to sleep
-        * 
-        * This is extremely unlikely, and if it happens should be acceptable.
-        * Data will be flushed with the next notification.
-        */
-        
     }
 }
 
