@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 
 project(matlogger2 VERSION 1.0.0 LANGUAGES CXX)
 
+find_package(Eigen3 REQUIRED)
+message(STATUS "Eigen dir: ${EIGEN3_INCLUDE_DIR}")
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include_directories(
@@ -10,6 +14,8 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}/matio-cmake/matio/src/
     ${CMAKE_CURRENT_BINARY_DIR}/matio-cmake/
     ${CMAKE_CURRENT_BINARY_DIR}/
+    /usr/local/include
+    /opt/local/include
     src/
 )
 

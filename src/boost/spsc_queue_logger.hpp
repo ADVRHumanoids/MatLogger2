@@ -25,6 +25,7 @@
 #include <boost/static_assert.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/next_prior.hpp>
 
 #include <boost/type_traits/has_trivial_destructor.hpp>
 #include <boost/type_traits/is_convertible.hpp>

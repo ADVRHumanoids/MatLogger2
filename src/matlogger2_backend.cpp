@@ -45,6 +45,7 @@ static std::unique_ptr<T> GetFactory(const std::string& lib_name)
     
     if(!lib_handle)
     {
+        fprintf(stderr, "%s\n", dlerror());
         return nullptr;
     } 
     else 
@@ -91,7 +92,7 @@ XBot::matlogger2::Backend::UniquePtr XBot::matlogger2::Backend::MakeInstance(std
         return std::make_unique<DummyBackend>();
     }
     
-    return GetFactory<Backend>("libmatlogger2-backend-" + type + ".so");
+    return GetFactory<Backend>("libmatlogger2-backend-" + type + ".dylib");
 }
 
 
