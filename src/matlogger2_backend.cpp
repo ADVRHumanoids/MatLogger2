@@ -92,7 +92,7 @@ XBot::matlogger2::Backend::UniquePtr XBot::matlogger2::Backend::MakeInstance(std
         return std::make_unique<DummyBackend>();
     }
     
-    return GetFactory<Backend>("libmatlogger2-backend-" + type + ".dylib");
+    return GetFactory<Backend>("libmatlogger2-backend-" + type + MATLOGGER2_LIB_EXT);
 }
 
 

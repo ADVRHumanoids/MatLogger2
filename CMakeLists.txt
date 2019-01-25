@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(matlogger2 VERSION 1.0.0 LANGUAGES CXX)
 
 find_package(Eigen3 REQUIRED)
-message(STATUS "Eigen dir: ${EIGEN3_INCLUDE_DIR}")
-include_directories(${EIGEN3_INCLUDE_DIR})
+find_package(Boost REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -14,8 +13,8 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}/matio-cmake/matio/src/
     ${CMAKE_CURRENT_BINARY_DIR}/matio-cmake/
     ${CMAKE_CURRENT_BINARY_DIR}/
-    /usr/local/include
-    /opt/local/include
+    ${EIGEN3_INCLUDE_DIR}
+    ${Boost_INCLUDE_DIRS}
     src/
 )
 
@@ -35,9 +34,15 @@ target_link_libraries(${LIBRARY_TARGET_NAME} PRIVATE dl -pthread)
 target_compile_options(${LIBRARY_TARGET_NAME} PRIVATE -std=c++14)
 set_target_properties(${LIBRARY_TARGET_NAME} PROPERTIES 
         VERSION ${${PROJECT_NAME}_VERSION})
+set(LIB_EXT ".so")
+if(APPLE)
+    set(LIB_EXT ".dylib")
+endif()
+target_compile_definitions(${LIBRARY_TARGET_NAME} PRIVATE -DMATLOGGER2_LIB_EXT="${LIB_EXT}")
         
 target_include_directories(${LIBRARY_TARGET_NAME} INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
+                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
+                                                            ${EIGEN3_INCLUDE_DIR})
 
 # Specify installation targets, typology and destination folders.
 install(TARGETS  ${LIBRARY_TARGET_NAME}

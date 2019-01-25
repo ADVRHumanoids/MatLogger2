@@ -30,6 +30,9 @@ target_link_libraries(TestApi ${TestLibs}) # -fsanitize=thread)
 add_dependencies(TestApi GTest-ext matlogger2)
 add_test(NAME TestApi COMMAND TestApi)
 
+add_executable(TestMalloc TestMalloc.cpp)
+target_link_libraries(TestMalloc matlogger2)
+
 add_executable(ProfileTest profile_test.cpp)
 target_link_libraries(ProfileTest matlogger2 -lpthread)
 

@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 namespace XBot 
 {
