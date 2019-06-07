@@ -28,6 +28,8 @@ namespace XBot { namespace matlogger2 {
         
         virtual bool close() = 0;
         
+        virtual ~Backend() = default;
+        
         
     };
     
