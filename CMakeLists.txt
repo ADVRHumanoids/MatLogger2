@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(matlogger2 VERSION 1.0.0 LANGUAGES CXX)
+project(matlogger2 VERSION 1.0.1 LANGUAGES CXX)
 
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
