@@ -10,7 +10,7 @@ Standard cmake workflow:
  - make install
  
 ## Installing the binary release
-  - cd *SOURCE_DIR*/release
+  - cd *SOURCE_DIR*/release (or `wget https://github.com/ADVRHumanoids/MatLogger2/raw/master/release/matlogger2-1.0.0-Linux.deb`)
   - sudo dpkg -i matlogger2-X.Y.Z-Linux.deb
   
 The binary release has been tested only with Ubuntu 16.04
