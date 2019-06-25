@@ -88,6 +88,8 @@ install(TARGETS  ${MATIO_BACKEND_NAME}
         ARCHIVE  DESTINATION "${CMAKE_INSTALL_LIBDIR}"  COMPONENT lib
         RUNTIME  DESTINATION "${CMAKE_INSTALL_BINDIR}"  COMPONENT bin)
      
+# Compile python bindings
+add_subdirectory(bindings/python/)
                             
 # Add the uninstall target
 include(AddUninstallTarget)
