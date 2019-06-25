@@ -64,9 +64,9 @@ struct MatAppender::Impl
     
 };
 
-MatAppender::Ptr MatAppender::MakeInstance()
+MatAppender::UniquePtr MatAppender::MakeInstance()
 {
-    return Ptr(new MatAppender);
+    return UniquePtr(new MatAppender);
 }
 
 MatAppender::Impl::Impl():

@@ -71,6 +71,7 @@ namespace XBot
         
         typedef std::weak_ptr<MatLogger2> WeakPtr;
         typedef std::shared_ptr<MatLogger2> Ptr;
+        typedef std::unique_ptr<MatLogger2> UniquePtr;
         
         struct Options
         {
@@ -89,7 +90,7 @@ namespace XBot
         * The function internally calls one of the available constructor overload.
         */
         template <typename... Args>
-        static Ptr MakeLogger(Args... args);
+        static UniquePtr MakeLogger(Args... args);
         
         /**
          * @brief Returns the full path associated with this logger object
@@ -225,9 +226,9 @@ namespace XBot
 }
 
 template <typename... Args>
-inline XBot::MatLogger2::Ptr XBot::MatLogger2::MakeLogger(Args... args)
+inline XBot::MatLogger2::UniquePtr XBot::MatLogger2::MakeLogger(Args... args)
 {
-    return Ptr(new MatLogger2(args...));
+    return UniquePtr(new MatLogger2(args...));
 }
         
 template <typename Derived>

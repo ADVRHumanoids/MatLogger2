@@ -28,11 +28,12 @@ namespace XBot
         
         typedef std::weak_ptr<MatAppender> WeakPtr;
         typedef std::shared_ptr<MatAppender> Ptr;
+        typedef std::unique_ptr<MatAppender> UniquePtr;
         
         /**
          * @brief Returns a shared pointer to a new MatAppender object
          */
-        static Ptr MakeInstance();
+        static UniquePtr MakeInstance();
         
         /**
          * @brief Register a MAT-logger to the appender. Note that
