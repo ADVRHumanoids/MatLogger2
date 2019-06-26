@@ -24,6 +24,9 @@ if(${pybind11_FOUND})
     
     install(TARGETS matlogger
             DESTINATION ${PYTHON_SITE}/matlogger2)
+            
+    file(WRITE ${CMAKE_BINARY_DIR}/__init__.py "")
+    install(FILES  ${CMAKE_BINARY_DIR}/__init__.py DESTINATION ${PYTHON_SITE}/matlogger2)
 
             
 else()

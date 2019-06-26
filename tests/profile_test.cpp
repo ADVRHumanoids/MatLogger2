@@ -5,7 +5,7 @@
 
 
 
-int log_data(const auto& data, const auto& vars, auto logger)
+int log_data(const auto& data, const auto& vars, auto& logger)
 {
     for(auto& v : vars)
     {
