@@ -132,4 +132,3 @@ del(logger) # destroy to force flushing
  
  ## Documentation
  Header files are documented with doxygen! An [**online version**](https://advrhumanoids.github.io/MatLogger2/classXBot_1_1MatLogger2.html) is also available.
-https://pybind11.readthedocs.io/en/stable/
