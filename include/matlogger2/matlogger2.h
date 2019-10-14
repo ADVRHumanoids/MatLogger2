@@ -90,7 +90,7 @@ namespace XBot
         * The function internally calls one of the available constructor overload.
         */
         template <typename... Args>
-        static UniquePtr MakeLogger(Args... args);
+        static Ptr MakeLogger(Args... args);
         
         /**
          * @brief Returns the full path associated with this logger object
@@ -226,9 +226,9 @@ namespace XBot
 }
 
 template <typename... Args>
-inline XBot::MatLogger2::UniquePtr XBot::MatLogger2::MakeLogger(Args... args)
+inline XBot::MatLogger2::Ptr XBot::MatLogger2::MakeLogger(Args... args)
 {
-    return UniquePtr(new MatLogger2(args...));
+    return Ptr(new MatLogger2(args...));
 }
         
 template <typename Derived>

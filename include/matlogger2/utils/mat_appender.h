@@ -33,7 +33,7 @@ namespace XBot
         /**
          * @brief Returns a shared pointer to a new MatAppender object
          */
-        static UniquePtr MakeInstance();
+        static Ptr MakeInstance();
         
         /**
          * @brief Register a MAT-logger to the appender. Note that
@@ -64,8 +64,9 @@ namespace XBot
          * by the user.
          */
         ~MatAppender();
-        
+
     private:
+
         
         MatAppender();
         
