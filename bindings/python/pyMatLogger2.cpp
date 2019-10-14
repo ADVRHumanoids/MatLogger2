@@ -1,4 +1,5 @@
 #include <matlogger2/matlogger2.h>
+#include <matlogger2/utils/mat_appender.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 
@@ -29,27 +30,41 @@ void add_scalar(MatLogger2& self, const std::string& name, double var)
     }
 }
 
+auto construct_matappender = []()
+{
+    return MatAppender::MakeInstance();
+};
+
 PYBIND11_MODULE(matlogger, m) {
     
     py::enum_<VariableBuffer::Mode>(m, "BufferMode", py::arithmetic())
-        .value("CircularBuffer", VariableBuffer::Mode::circular_buffer)
-        .value("ProducerConsumer", VariableBuffer::Mode::producer_consumer);
-        
-    py::class_<MatLogger2>(m, "MatLogger2")
-        .def(py::init(construct_matlogger), 
-             py::arg("file"), 
-             py::arg("enable_compression") = false, 
-             py::arg("default_buffer_size") = MatLogger2::Options().default_buffer_size)
-        .def("getFilename", &MatLogger2::get_filename)
-        .def("create", &MatLogger2::create, 
-             py::arg("name"), 
-             py::arg("rows"), 
-             py::arg("cols") = 1, 
-             py::arg("buffer_size") = 1000)
-        .def("add", add_mat)
-        .def("add", add_scalar)
-        .def("setBufferMode", &MatLogger2::set_buffer_mode)
-        ;
+            .value("CircularBuffer", VariableBuffer::Mode::circular_buffer)
+            .value("ProducerConsumer", VariableBuffer::Mode::producer_consumer);
+
+    py::class_<MatLogger2, std::shared_ptr<MatLogger2>>(m, "MatLogger2")
+            .def(py::init(construct_matlogger),
+                 py::arg("file"),
+                 py::arg("enable_compression") = false,
+                 py::arg("default_buffer_size") = MatLogger2::Options().default_buffer_size)
+            .def("getFilename", &MatLogger2::get_filename)
+            .def("create", &MatLogger2::create,
+                 py::arg("name"),
+                 py::arg("rows"),
+                 py::arg("cols") = 1,
+                 py::arg("buffer_size") = 1000)
+            .def("add", add_mat)
+            .def("add", add_scalar)
+            .def("setBufferMode", &MatLogger2::set_buffer_mode)
+            ;
+
+    py::class_<MatAppender, std::shared_ptr<MatAppender>>(m, "MatAppender")
+            .def(py::init(construct_matappender))
+            .def("add_logger", &MatAppender::add_logger)
+            .def("flush_available_data", &MatAppender::flush_available_data)
+            .def("start_flush_thread", &MatAppender::start_flush_thread)
+            ;
+
+
     
 }
 
