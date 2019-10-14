@@ -185,6 +185,11 @@ bool MatAppender::add_logger(std::shared_ptr<MatLogger2> logger)
     return true;
 }
 
+int MatAppender::flush_available_data()
+{
+    return impl().flush_available_data_all();
+}
+
 void MatAppender::start_flush_thread()
 
 {
