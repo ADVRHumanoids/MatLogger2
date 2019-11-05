@@ -86,6 +86,7 @@ namespace{
 MatLogger2::MatLogger2(std::string file, Options opt):
     _file_name(file),
     _vars_mutex(new MutexImpl),
+    _matdata_queue_mutex(new MutexImpl),
     _buffer_mode(VariableBuffer::Mode::producer_consumer),
     _opt(opt)
 {
@@ -207,9 +208,36 @@ bool MatLogger2::add(const std::string& var_name, double scalar)
     return vbuf && vbuf->add_elem(data);
 }
 
+bool MatLogger2::save(const std::string & var_name, const MatData & var_data)
+{
+    std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
+    _matdata_queue.emplace(var_name, var_data);
+    return true;
+}
+
+bool MatLogger2::save(const std::string & var_name, MatData && var_data)
+{
+   std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
+   _matdata_queue.emplace(var_name, var_data);
+   return true;
+}
+
 
 int MatLogger2::flush_available_data()
 {
+    // save matdata variables
+    {
+        std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
+
+        while(!_matdata_queue.empty())
+        {
+            auto matdata = std::move(_matdata_queue.front());
+            _matdata_queue.pop();
+            _backend->write_container(matdata.first.c_str(), matdata.second);
+        }
+    }
+
+
     // number of flushed bytes is returned on exit
     int bytes = 0;
     

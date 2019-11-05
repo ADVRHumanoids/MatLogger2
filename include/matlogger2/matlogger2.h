@@ -5,9 +5,11 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <queue>
 #include <Eigen/Dense>
 
 #include <matlogger2/utils/var_buffer.h>
+#include <matlogger2/mat_data.h>
 
 
 
@@ -151,6 +153,12 @@ namespace XBot
         bool add(const std::string& var_name, Iterator begin, Iterator end);
         
         bool add(const std::string& var_name, double data);
+
+        bool save(const std::string& var_name,
+                  const matlogger2::MatData& var_data);
+
+        bool save(const std::string& var_name,
+                  matlogger2::MatData&& var_data);
         
         /**
         * @brief Flush available data to disk.
@@ -217,6 +225,11 @@ namespace XBot
         
         // handle to backend object
         std::unique_ptr<matlogger2::Backend> _backend;
+
+        std::unique_ptr<MutexImpl> _matdata_queue_mutex;
+        std::queue<std::pair<std::string, matlogger2::MatData>> _matdata_queue;
+
+
         
         
     };
