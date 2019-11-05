@@ -22,6 +22,9 @@ namespace XBot { namespace matlogger2 {
                    int cols, 
                    int slices) override;
         
+        bool write_container(const char * name,
+                             const MatData & data) override;
+
         virtual bool close() override;
         
     private:
@@ -29,6 +32,7 @@ namespace XBot { namespace matlogger2 {
         mat_t * _mat_file;
         matio_compression _compression;
     };
+
     
 } }
 
