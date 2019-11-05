@@ -60,7 +60,7 @@ bool MatioBackend::close()
     return 0 == Mat_Close(_mat_file);
 }
 
-matvar_t * make_matvar(const std::string& name, MatData& matdata);
+matvar_t * make_matvar(const std::string& name, const MatData& matdata);
 
 struct create_matvar_visitor : boost::static_visitor<matvar_t *>
 {
@@ -121,14 +121,14 @@ struct create_matvar_visitor : boost::static_visitor<matvar_t *>
     }
 };
 
-matvar_t * make_scalar_matvar(const std::string& name, MatData& scalar_matdata)
+matvar_t * make_scalar_matvar(const std::string& name, const MatData& scalar_matdata)
 {
     create_matvar_visitor visitor;
     visitor._name = name;
     return boost::apply_visitor(visitor, scalar_matdata.value());
 }
 
-matvar_t * make_struct_matvar(const std::string& name, MatData& struct_matdata)
+matvar_t * make_struct_matvar(const std::string& name, const MatData& struct_matdata)
 {
     std::vector<const char *> field_names;
 
@@ -162,7 +162,7 @@ matvar_t * make_struct_matvar(const std::string& name, MatData& struct_matdata)
 
 }
 
-matvar_t * make_cell_matvar(const std::string& name, MatData& cell_matdata)
+matvar_t * make_cell_matvar(const std::string& name, const MatData& cell_matdata)
 {
     size_t cell_dim[2] = {cell_matdata.asCell().size(), 1};
 
@@ -185,7 +185,7 @@ matvar_t * make_cell_matvar(const std::string& name, MatData& cell_matdata)
     return outercell;
 }
 
-matvar_t * make_matvar(const std::string& name, MatData& matdata)
+matvar_t * make_matvar(const std::string& name, const MatData& matdata)
 {
     matvar_t * elem_matvar = nullptr;
 
@@ -205,11 +205,8 @@ matvar_t * make_matvar(const std::string& name, MatData& matdata)
 }
 
 bool XBot::matlogger2::MatioBackend::write_container(const char * name,
-                                                     const MatData & __data)
+                                                     const MatData & data)
 {
-    // hack const cast
-
-    auto& data = const_cast<MatData&>(__data);
 
     matvar_t * mat_var = make_matvar(name, data);
 

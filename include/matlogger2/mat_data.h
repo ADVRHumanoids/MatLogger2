@@ -43,22 +43,6 @@ class MatData
 
 public:
 
-    /* Type checkers */
-    bool is_struct() const;
-    bool is_cell() const;
-    bool is_scalar() const;
-
-    /* Getters to underlying types (throw on wrong type) */
-    MatScalarType& value();
-    std::map<std::string, MatData>& asStruct();
-    std::vector<MatData>& asCell();
-
-    /* Direct access to cell elements */
-    MatData& operator[](int i);
-
-    /* Direct access to struct elements */
-    MatData& operator[](const std::string& key);
-
     /* Default constructor (double type, value = 0) */
     MatData();
 
@@ -66,7 +50,7 @@ public:
             - double
             - std::strung
             - Eigen::MatrixXd
-        */
+    */
     template <typename T = double>
     MatData(const T& value);
 
@@ -81,6 +65,29 @@ public:
     /* Factories for struct and cell types (for scalar, use constructor) */
     static MatData make_struct();
     static MatData make_cell(int size = 0);
+
+    /* Type checkers */
+    bool is_struct() const;
+    bool is_cell() const;
+    bool is_scalar() const;
+
+    /* Getters to underlying types (throw on wrong type) */
+    MatScalarType& value();
+    std::map<std::string, MatData>& asStruct();
+    std::vector<MatData>& asCell();
+
+    const MatScalarType& value() const;
+    const std::map<std::string, MatData>& asStruct() const;
+    const std::vector<MatData>& asCell() const;
+
+    /* Direct access to cell elements */
+    MatData& operator[](int i);
+    const MatData& operator[](int i) const;
+
+    /* Direct access to struct elements */
+    MatData& operator[](const std::string& key);
+    const MatData& operator[](const std::string& key) const;
+
 
     /* Print to ostream object */
     void print(std::ostream& os = std::cout) const;

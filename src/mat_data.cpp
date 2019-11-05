@@ -121,7 +121,27 @@ std::vector<MatData> & MatData::asCell()
     return _data_ptr->getCell();
 }
 
+const MatScalarType & MatData::value() const
+{
+    return _data_ptr->getScalar();
+}
+
+const std::map<std::string, MatData> & MatData::asStruct() const
+{
+    return _data_ptr->getStruct();
+}
+
+const std::vector<MatData> & MatData::asCell() const
+{
+    return _data_ptr->getCell();
+}
+
 MatData & MatData::operator[](int i)
+{
+    return asCell()[i];
+}
+
+const MatData & MatData::operator[](int i) const
 {
     return asCell()[i];
 }
@@ -129,6 +149,11 @@ MatData & MatData::operator[](int i)
 MatData & MatData::operator[](const std::string & key)
 {
     return asStruct()[key];
+}
+
+const MatData & MatData::operator[](const std::string & key) const
+{
+    return asStruct().at(key);
 }
 
 MatData::MatData()
