@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(matlogger2 VERSION 1.0.1 LANGUAGES CXX)
+project(matlogger2 VERSION 1.2.0 LANGUAGES CXX)
 
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
@@ -79,7 +79,7 @@ endif()
 set(MATIO_BACKEND_NAME matlogger2-backend-matio)
 add_library(${MATIO_BACKEND_NAME} SHARED src/matio_backend.cpp)
 target_compile_options(${MATIO_BACKEND_NAME} PRIVATE -std=c++14)
-target_link_libraries(${MATIO_BACKEND_NAME} PRIVATE matio)
+target_link_libraries(${MATIO_BACKEND_NAME} PRIVATE matio matlogger2)
 set_target_properties(${MATIO_BACKEND_NAME} PROPERTIES 
         VERSION ${${PROJECT_NAME}_VERSION})
 # Specify installation targets, typology and destination folders.
