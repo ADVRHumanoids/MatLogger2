@@ -8,7 +8,7 @@
 
 namespace XBot { namespace matlogger2 {
    
-    class Backend 
+    class MATL2_API Backend
     {
         
     public:

@@ -7,38 +7,30 @@
 #include <boost/variant.hpp>
 #include <Eigen/Dense>
 
+#include <matlogger2/utils/visibility.h>
+
 namespace XBot
 {
 namespace matlogger2
 {
 
+/* Forward declarations */
 namespace detail {
 
-    typedef  boost::variant<std::string,
-                            double,
-                            Eigen::MatrixXd> __MatScalarBaseType;
-
     class MatDataBase;
-
 }
 
-class MatScalarType : public detail::__MatScalarBaseType
-{
+class MATL2_API MatScalarType;
 
-public:
-
-    using detail::__MatScalarBaseType::__MatScalarBaseType;
-
-    template <typename T>
-    T& as()
-    {
-        return boost::get<T>(*this);
-    }
-
-};
-
-
-class MatData
+/**
+ * @brief The MatData class incapsulates a MATLAB-style variable
+ * in a more modern C++ setting. It supports arbitrarily nested
+ * structs, cell arrays and scalar values. Type-safety is enforced
+ * at runtime (excpetions are thrown on wrong data interpretation).
+ *
+ * The MatData class has value semantics, i.e. it can be copied.
+ */
+class MATL2_API MatData
 {
 
 public:
@@ -103,6 +95,18 @@ private:
 
 };
 
+struct MATL2_API bad_type : std::exception
+{
+    bad_type(std::string req, std::string actual);
+
+    const char * what() const noexcept;
+
+private:
+
+    std::string req;
+    std::string actual;
+};
+
 class detail::MatDataBase
 {
 
@@ -140,8 +144,40 @@ MatData::MatData(const T& value):
     this->value() = value;
 }
 
+namespace detail
+{
+
+typedef  boost::variant<std::string,
+                        double,
+                        Eigen::MatrixXd> __MatScalarBaseType;
+
+}
+
+class MATL2_API MatScalarType : public detail::__MatScalarBaseType
+{
+
+public:
+
+    using detail::__MatScalarBaseType::__MatScalarBaseType;
+
+    template <typename T>
+    T& as()
+    {
+        return boost::get<T>(*this);
+    }
+
+    template <typename T>
+    const T& as() const
+    {
+        return boost::get<T>(*this);
+    }
+
+};
+
+
 }
 
 }
 
 #endif // MAT_DATA_H
+

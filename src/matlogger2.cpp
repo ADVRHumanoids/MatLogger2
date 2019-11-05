@@ -25,7 +25,7 @@ namespace
     }
 }
 
-class MatLogger2::MutexImpl
+class MATL2_LOCAL MatLogger2::MutexImpl
 {
 public:
     

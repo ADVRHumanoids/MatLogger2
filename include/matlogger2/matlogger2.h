@@ -11,13 +11,13 @@
 #include <matlogger2/utils/var_buffer.h>
 #include <matlogger2/mat_data.h>
 
-
+#include <matlogger2/utils/visibility.h>
 
 namespace XBot 
 {
     namespace matlogger2 
     {
-        class Backend;
+        class MATL2_API Backend;
     }
 
     /**
@@ -65,7 +65,7 @@ namespace XBot
     * multi-threaded environment (i.e. additional synchronization must be provided
     * by the user)
     */
-    class MatLogger2 
+    class MATL2_API MatLogger2
     {
         
     public:
@@ -75,7 +75,7 @@ namespace XBot
         typedef std::shared_ptr<MatLogger2> Ptr;
         typedef std::unique_ptr<MatLogger2> UniquePtr;
         
-        struct Options
+        struct MATL2_API Options
         {
             bool enable_compression;
             int default_buffer_size;
@@ -190,13 +190,13 @@ namespace XBot
         * 
         * @return True if all variables succeed
         */
-        bool flush_to_queue_all();
+        MATL2_LOCAL bool flush_to_queue_all();
         
         /**
         * @brief Return a pointer to the requested variable. If it does 
         * not exist, it tries to create one with the provided dimentions.
         */
-        VariableBuffer * find_or_create(const std::string& var_name,    
+        VariableBuffer * find_or_create(const std::string& var_name,
                                         int rows, int cols
                                         );
         
@@ -208,7 +208,7 @@ namespace XBot
         // producer must hold it during create(), and 
         // set_on_data_available_callback()
         // consumer must hold it during flush_available_data()
-        class MutexImpl;
+        class MATL2_LOCAL MutexImpl;
         std::unique_ptr<MutexImpl> _vars_mutex;
         
         // map of all defined variables 

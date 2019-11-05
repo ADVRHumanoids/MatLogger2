@@ -32,14 +32,15 @@ set(${LIBRARY_TARGET_NAME}_SRC
     )
 add_library(${LIBRARY_TARGET_NAME} SHARED ${${LIBRARY_TARGET_NAME}_SRC})
 target_link_libraries(${LIBRARY_TARGET_NAME} PRIVATE dl -pthread)
-target_compile_options(${LIBRARY_TARGET_NAME} PRIVATE -std=c++14)
+target_compile_options(${LIBRARY_TARGET_NAME} PRIVATE -std=c++14 -fvisibility=hidden)
 set_target_properties(${LIBRARY_TARGET_NAME} PROPERTIES 
         VERSION ${${PROJECT_NAME}_VERSION})
 set(LIB_EXT ".so")
 if(APPLE)
     set(LIB_EXT ".dylib")
 endif()
-target_compile_definitions(${LIBRARY_TARGET_NAME} PRIVATE -DMATLOGGER2_LIB_EXT="${LIB_EXT}")
+target_compile_definitions(${LIBRARY_TARGET_NAME} PRIVATE -DMATLOGGER2_LIB_EXT="${LIB_EXT}"
+                                                            -DMATL2_DLL)
         
 target_include_directories(${LIBRARY_TARGET_NAME} INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                                                             "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
@@ -78,7 +79,8 @@ endif()
 # Compile and install matio backend  
 set(MATIO_BACKEND_NAME matlogger2-backend-matio)
 add_library(${MATIO_BACKEND_NAME} SHARED src/matio_backend.cpp)
-target_compile_options(${MATIO_BACKEND_NAME} PRIVATE -std=c++14)
+target_compile_options(${MATIO_BACKEND_NAME} PRIVATE -std=c++14 -fvisibility=hidden)
+target_compile_definitions(${MATIO_BACKEND_NAME} PRIVATE -DMATL2_DLL)
 target_link_libraries(${MATIO_BACKEND_NAME} PRIVATE matio matlogger2)
 set_target_properties(${MATIO_BACKEND_NAME} PROPERTIES 
         VERSION ${${PROJECT_NAME}_VERSION})
@@ -109,6 +111,7 @@ if(BUILD_TESTS)
   add_custom_target(test_verbose ${CMAKE_CTEST_COMMAND} -V)
   add_subdirectory(tests)
 endif()
+
 
 
 

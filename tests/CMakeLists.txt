@@ -21,7 +21,7 @@ if(NOT GTEST_FOUND)
 endif()
 
 
-set(TestLibs matlogger2 ${GTEST_BOTH_LIBRARIES} -lm -lpthread)
+set(TestLibs matlogger2  ${GTEST_BOTH_LIBRARIES} -lm -lpthread)
 include_directories(${GTEST_INCLUDE_DIRS})
 link_directories(${GTEST_LIB_DIRS})
 
