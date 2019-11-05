@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 
+#include <matlogger2/mat_data.h>
+
 namespace XBot { namespace matlogger2 {
    
     class Backend 
@@ -25,6 +27,9 @@ namespace XBot { namespace matlogger2 {
                            int rows, 
                            int cols, 
                            int slices) = 0;
+
+        virtual bool write_container(const char * name,
+                           const MatData& data);
         
         virtual bool close() = 0;
         

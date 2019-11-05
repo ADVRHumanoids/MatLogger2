@@ -95,4 +95,9 @@ XBot::matlogger2::Backend::UniquePtr XBot::matlogger2::Backend::MakeInstance(std
     return GetFactory<Backend>("libmatlogger2-backend-" + type + MATLOGGER2_LIB_EXT);
 }
 
+bool XBot::matlogger2::Backend::write_container(const char * name, const XBot::matlogger2::MatData & data)
+{
+    return false;
+}
+
 
