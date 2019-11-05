@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 #include <matlogger2/matlogger2.h>
 #include <matlogger2/utils/mat_appender.h>
+#include <matlogger2/mat_data.h>
 #include <signal.h>
 #include <chrono>
 #include <list>
+#include <map>
+#include <boost/variant.hpp>
 
 namespace
 {
@@ -41,6 +44,40 @@ protected:
      
      
 };
+
+
+TEST_F(TestApi, structExample)
+{
+    using namespace XBot::matlogger2;
+
+    auto struct_data = MatData::make_struct();
+    struct_data["field_1"] = MatData::make_cell(3);
+    struct_data["field_2"] = Eigen::MatrixXd::Identity(5, 8);
+    struct_data["field_3"] = MatData::make_struct();
+
+    struct_data["field_1"].asCell() = {1.0,
+            "ci\nao",
+            Eigen::MatrixXd::Identity(2,5)};
+
+    struct_data["field_3"]["subfield_1"] = 1;
+    struct_data["field_3"]["subfield_2"] = 2.0;
+    struct_data["field_3"]["subfield_3"] = 3.0;
+    struct_data["field_3"]["subfield_4"] = 4.0;
+
+    struct_data.print();
+
+    auto struct_data_cpy = struct_data;
+
+    struct_data_cpy["field_2"].value().as<Eigen::MatrixXd>() = Eigen::Matrix3d::Random();
+
+    struct_data_cpy.print();
+    struct_data.print();
+
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/structExample");
+    logger->save("mvar", struct_data);
+    logger.reset();
+
+}
 
 TEST_F(TestApi, usageExample)
 {
@@ -210,3 +247,10 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+
+
+
+
+
+
