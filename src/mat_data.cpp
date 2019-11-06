@@ -5,22 +5,7 @@ namespace matlogger2 {
 
 using detail::MatDataBase;
 
-struct bad_type : std::exception
-{
-    bad_type(std::string req, std::string actual)
-    {
-        this->req = req;
-        this->actual = actual;
-    }
 
-    const char * what() const noexcept override
-    {
-        return ("Requested type '" + req + "' does not match the actual type '" + actual + "'").c_str();
-    }
-
-    std::string req;
-    std::string actual;
-};
 
 
 
@@ -249,6 +234,17 @@ MatScalarType & MatDataBase::getScalar() { throw bad_type("scalar", type()); }
 std::map<std::string, MatData> & MatDataBase::getStruct() { throw bad_type("struct", type()); }
 
 std::vector<MatData> & MatDataBase::getCell() { throw bad_type("cell", type()); }
+
+bad_type::bad_type(std::string req, std::string actual)
+{
+    this->req = req;
+    this->actual = actual;
+}
+
+const char * bad_type::what() const noexcept
+{
+    return ("Requested type '" + req + "' does not match the actual type '" + actual + "'").c_str();
+}
 
 
 

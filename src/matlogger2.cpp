@@ -351,50 +351,50 @@ MatLogger2::~MatLogger2()
 
 
 
-#define ADD_EXPLICIT_INSTANTIATION(EigenType) \
-template bool MatLogger2::add(const std::string&, const Eigen::MatrixBase<EigenType>&); \
-template bool VariableBuffer::add_elem(const Eigen::MatrixBase<EigenType>&); \
-template bool VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<EigenType>&);
+//#define ADD_EXPLICIT_INSTANTIATION(EigenType) \
+//template bool MatLogger2::add(const std::string&, const Eigen::MatrixBase<EigenType>&); \
+//template bool VariableBuffer::add_elem(const Eigen::MatrixBase<EigenType>&); \
+//template bool VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<EigenType>&);
 
-#define ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(Scalar) \
-template bool MatLogger2::add(const std::string&, const std::vector<Scalar>&); \
+//#define ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(Scalar) \
+//template bool MatLogger2::add(const std::string&, const std::vector<Scalar>&); \
 
 
-template <typename Scalar>
-using Vector6 = Eigen::Matrix<Scalar,6,1>;
+//template <typename Scalar>
+//using Vector6 = Eigen::Matrix<Scalar,6,1>;
 
-template <typename Scalar>
-using MapX = Eigen::Map<Eigen::Matrix<Scalar, -1, 1>>;
+//template <typename Scalar>
+//using MapX = Eigen::Map<Eigen::Matrix<Scalar, -1, 1>>;
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXd)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXd)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4d)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXf)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXf)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4f)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXd)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4d)
-ADD_EXPLICIT_INSTANTIATION(Vector6<double>)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXd)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4d)
+//ADD_EXPLICIT_INSTANTIATION(Vector6<double>)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXf)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4f)
-ADD_EXPLICIT_INSTANTIATION(Vector6<float>)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXf)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4f)
+//ADD_EXPLICIT_INSTANTIATION(Vector6<float>)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXi)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2i)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3i)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4i)
-ADD_EXPLICIT_INSTANTIATION(Vector6<int>)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXi)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2i)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3i)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4i)
+//ADD_EXPLICIT_INSTANTIATION(Vector6<int>)
 
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(int)
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(unsigned int)
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(float)
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(double)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(int)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(unsigned int)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(float)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(double)

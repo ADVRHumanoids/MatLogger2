@@ -31,10 +31,9 @@ set(src_SOURCES
 
 set_source_files_properties(${src_SOURCES} PROPERTIES LANGUAGE CXX )
 
-add_compile_options("-fPIC")
-add_compile_options("-std=c++14")
-
 add_library(matio STATIC ${src_SOURCES})
+target_compile_options(matio PRIVATE -fPIC -std=c++14 -fvisibility=hidden)
+
 target_include_directories(matio
     PRIVATE ${PROJECT_SOURCE_DIR}/matio/src/
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/matio/src/

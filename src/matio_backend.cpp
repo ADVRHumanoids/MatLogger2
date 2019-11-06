@@ -3,7 +3,7 @@
 using namespace XBot::matlogger2;
 
 
-extern "C" Backend * create_instance()
+extern "C" MATL2_API Backend * create_instance()
 {
     return new MatioBackend;
 }
