@@ -256,7 +256,7 @@ Mat_CreateVer(const char *matname,const char *hdr_str,enum mat_ft mat_file_ver)
 #if defined(MAT73) && MAT73
             mat = Mat_Create73(matname,hdr_str);
 #else
-#           error "porco dio"
+#           error "MAT73 needed in order for the library to work properly"
 #endif
             break;
         default:
