@@ -73,8 +73,15 @@ TEST_F(TestApi, structExample)
     struct_data_cpy.print();
     struct_data.print();
 
+    int cell_size = 3;
+    auto cell_data = MatData::make_cell(cell_size);
+    cell_data[0] = Eigen::Vector2d::Random();
+    cell_data[1] = Eigen::Vector3d::Random();
+    cell_data[2] = Eigen::Vector4d::Random();
+
     auto logger = XBot::MatLogger2::MakeLogger("/tmp/structExample");
     logger->save("mvar", struct_data);
+    logger->save("cellvar", cell_data);
     logger.reset();
 
 }

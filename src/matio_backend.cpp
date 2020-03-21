@@ -166,7 +166,7 @@ matvar_t * make_cell_matvar(const std::string& name, const MatData& cell_matdata
 {
     size_t cell_dim[2] = {cell_matdata.asCell().size(), 1};
 
-    matvar_t* outercell = Mat_VarCreate(NULL,
+    matvar_t* outercell = Mat_VarCreate(name.c_str(),
                                         MAT_C_CELL,
                                         MAT_T_CELL,
                                         2,
@@ -201,6 +201,8 @@ matvar_t * make_matvar(const std::string& name, const MatData& matdata)
     {
         elem_matvar = make_cell_matvar(name, matdata);
     }
+
+    return elem_matvar;
 
 }
 
