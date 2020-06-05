@@ -35,7 +35,7 @@ bool MatioBackend::write(const char* name, const double* data, int rows, int col
                                    dims,
                                    (void *)data,
                                    MAT_F_DONT_COPY_DATA);
-    
+
     int dim_append = slices == 1 ? 2 : 3;
     int ret = Mat_VarWriteAppend(_mat_file, 
                                  mat_var, 

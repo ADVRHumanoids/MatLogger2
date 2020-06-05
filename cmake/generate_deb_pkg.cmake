@@ -1,4 +1,4 @@
-set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local" CACHE PATH "Deb package install prefix")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
@@ -10,5 +10,3 @@ set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "C++ library for logging numeric data to MA
 include(CPack)
 
 set(DEB_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Linux.deb)
-add_custom_target(release_deb 
-                    cp ${CMAKE_CURRENT_BINARY_DIR}/${DEB_FILE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/release)

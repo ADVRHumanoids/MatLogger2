@@ -95,7 +95,9 @@ MatLogger2::MatLogger2(std::string file, Options opt):
     
     if(extension == "") // no extension, append date/time + .mat
     {
-        _file_name += "__" + date_time_as_string() + ".mat";
+        static int counter = 0;
+        _file_name += "__" + std::to_string(counter++) + "_" +
+                      date_time_as_string() + ".mat";
     }
     else if(extension != "mat") // extension different from .mat, error
     {
