@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(PYBIND11_PYTHON_VERSION 2.7 CACHE STRING "")
 find_package(pybind11 QUIET)
 
 add_compile_options(-std=c++14)
@@ -15,7 +14,7 @@ if(${pybind11_FOUND})
     
     # get python install path 
     execute_process(
-        COMMAND python -c "if True:
+        COMMAND ${PYTHON_EXECUTABLE} -c "if True:
             from distutils import sysconfig as sc
             print(sc.get_python_lib(prefix='', plat_specific=True))"
         OUTPUT_VARIABLE PYTHON_SITE
