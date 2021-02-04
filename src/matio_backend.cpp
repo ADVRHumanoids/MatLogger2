@@ -1,5 +1,15 @@
 #include "matio_backend.h"
 
+#include <fstream>
+#include <stdio.h>
+#include <string.h>
+
+inline bool file_exists(const std::string& name) 
+{
+    std::ifstream f(name.c_str());
+    return f.good();
+}
+
 using namespace XBot::matlogger2;
 
 
@@ -11,6 +21,19 @@ extern "C" MATL2_API Backend * create_instance()
 bool MatioBackend::init(std::string logger_name, 
                         bool enable_compression)
 {
+    // if file already exists, delete it
+    if(file_exists(logger_name))
+    {
+        if(remove(logger_name.c_str()) != 0)
+        {
+            fprintf(stderr, 
+                    "file '%s' already exists and could not be removed: %s \n",
+                    logger_name.c_str(), strerror(errno));
+
+            return false;
+        }
+    }
+
     _mat_file = Mat_CreateVer(logger_name.c_str(), 
                               nullptr, 
                               MAT_FT_MAT73);
@@ -40,8 +63,7 @@ bool MatioBackend::write(const char* name, const double* data, int rows, int col
     int ret = Mat_VarWriteAppend(_mat_file, 
                                  mat_var, 
                                  _compression, 
-                                 dim_append); // TBD compression from 
-                                              // user
+                                 dim_append);
     
     if(ret != 0)
     {

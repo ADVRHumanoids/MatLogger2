@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.5)
 
 project(matlogger2 VERSION 1.2.0 LANGUAGES CXX)
 
+option(MATLOGGER2_VERBOSE "Enable debug prints" OFF)
+
+if(${MATLOGGER2_VERBOSE})
+    add_definitions(-DMATLOGGER2_VERBOSE)
+endif()
+
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
 

@@ -163,7 +163,7 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     
     if(!(rows > 0 && cols > 0 && buffer_size > 0))
     {
-        fprintf(stderr, "Unable to create variable '%s': invalid parameters \
+        fprintf(stderr, "unable to create variable '%s': invalid parameters \
 (rows=%d, cols=%d, buf_size=%d)\n",
                 var_name.c_str(), rows, cols, buffer_size);
         return false;
@@ -176,7 +176,7 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     
     if(it != _vars.end())
     {
-        fprintf(stderr, "Variable '%s' already exists\n", var_name.c_str());
+        fprintf(stderr, "variable '%s' already exists\n", var_name.c_str());
         return false;
     }
     
@@ -184,8 +184,10 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     // queue
     int block_size = std::max(1, buffer_size / VariableBuffer::NumBlocks());
     
-    printf("Created variable '%s' (%d blocks, %d elem each)\n", 
+    #ifdef MATLOGGER2_VERBOSE
+    printf("created variable '%s' (%d blocks, %d elem each)\n", 
            var_name.c_str(), VariableBuffer::NumBlocks(), block_size);
+    #endif
     
     // insert VariableBuffer object inside the _vars map
     _vars.emplace(std::piecewise_construct,
@@ -346,7 +348,9 @@ MatLogger2::~MatLogger2()
     // flush to disk remaining data from queues
     while(flush_available_data() > 0);
     
-    printf("Flushed all data for file '%s'\n", _file_name.c_str());
+    #ifdef MATLOGGER2_VERBOSE
+    printf("flushed all data for file '%s'\n", _file_name.c_str());
+    #endif
     
     _backend->close();
 }
