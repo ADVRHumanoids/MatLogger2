@@ -79,6 +79,7 @@ namespace XBot
         {
             bool enable_compression;
             int default_buffer_size;
+            int default_buffer_size_max_bytes;
             
             Options();
         };

@@ -46,7 +46,8 @@ const std::string& VariableBuffer::get_name() const
 
 XBot::MatLogger2::Options::Options():
     enable_compression(false),
-    default_buffer_size(1e4)
+    default_buffer_size(1e4),
+    default_buffer_size_max_bytes(10*1024*1024)  // 10MB
 {
 }
 
@@ -158,7 +159,10 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
 {
     if(buffer_size == -1)
     {
-        buffer_size = _opt.default_buffer_size;
+        const int max_buf_size = _opt.default_buffer_size_max_bytes/sizeof(double)/rows/cols;
+
+        buffer_size = std::min(max_buf_size, _opt.default_buffer_size);
+
     }
     
     if(!(rows > 0 && cols > 0 && buffer_size > 0))
