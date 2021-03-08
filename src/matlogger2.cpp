@@ -157,6 +157,13 @@ void XBot::MatLogger2::set_buffer_mode(VariableBuffer::Mode buffer_mode)
 
 bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buffer_size)
 {
+    if(rows == 0 || cols == 0)
+    {
+        fprintf(stderr, "variable '%s' created with invalid dimensions %d x %d\n", 
+                var_name.c_str(), rows, cols);
+        return false;
+    }
+
     if(buffer_size == -1)
     {
         const int max_buf_size = _opt.default_buffer_size_max_bytes/sizeof(double)/rows/cols;
