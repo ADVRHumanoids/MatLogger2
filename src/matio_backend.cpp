@@ -40,7 +40,7 @@ bool MatioBackend::init(std::string logger_name,
     
     _compression = enable_compression ? MAT_COMPRESSION_ZLIB : MAT_COMPRESSION_NONE;
     
-    return _mat_file;
+    return bool(_mat_file);
 }
 
 bool MatioBackend::write(const char* name, const double* data, int rows, int cols, int slices)
@@ -67,7 +67,10 @@ bool MatioBackend::write(const char* name, const double* data, int rows, int col
     
     if(ret != 0)
     {
-        fprintf(stderr, "Mat_VarWriteAppend failed with code %d \n", ret);
+        fprintf(stderr,
+                "Mat_VarWriteAppend failed with code %d "
+                "while writing variable '%s' (%d x %d x %d) \n",
+                ret, name, rows, cols, slices);
     }
 
     // free mat variable
