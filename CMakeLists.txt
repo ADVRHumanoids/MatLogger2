@@ -8,8 +8,10 @@ if(${MATLOGGER2_VERBOSE})
     add_definitions(-DMATLOGGER2_VERBOSE)
 endif()
 
+find_package(roscpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
+find_package(ros_msg_parser REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -51,6 +53,14 @@ target_compile_definitions(${LIBRARY_TARGET_NAME} PRIVATE -DMATLOGGER2_LIB_EXT="
 target_include_directories(${LIBRARY_TARGET_NAME} INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                                                             "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
                                                             ${EIGEN3_INCLUDE_DIR})
+
+add_executable(logger_node src/logger.cpp)
+target_link_libraries(logger_node ${roscpp_LIBRARIES} ${ros_msg_parser_LIBRARIES} matlogger2)
+
+install(TARGETS logger_node
+        LIBRARY  DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
+        ARCHIVE  DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT lib
+        RUNTIME  DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin)
 
 # Specify installation targets, typology and destination folders.
 install(TARGETS  ${LIBRARY_TARGET_NAME}
