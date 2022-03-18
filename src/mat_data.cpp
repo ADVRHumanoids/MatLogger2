@@ -5,11 +5,6 @@ namespace matlogger2 {
 
 using detail::MatDataBase;
 
-
-
-
-
-
 class StructData : public MatDataBase
 {
 

@@ -4,7 +4,9 @@
 #include <string>
 #include <memory>
 
-#include <matlogger2/mat_data.h>
+#include <vector>
+
+#include "matlogger2/mat_data.h"
 
 namespace XBot { namespace matlogger2 {
    
@@ -22,14 +24,29 @@ namespace XBot { namespace matlogger2 {
                           bool enable_compression
                           ) = 0;
         
-        virtual bool write(const char * name,
+        virtual bool load(std::string matfile_path, 
+                          bool enable_write_access = false) = 0;
+
+        virtual bool get_var_names(std::vector<std::string>& var_names) = 0;
+
+        virtual bool write(const char * var_name, 
                            const double * data, 
-                           int rows, 
-                           int cols, 
-                           int slices) = 0;
+                           int rows, int cols, 
+                           int slices, 
+                           int append_dim = 2) = 0;
 
         virtual bool write_container(const char * name,
                            const MatData& data);
+
+        virtual bool readvar(const char* var_name, 
+                             double** data, 
+                             int& rows, 
+                             int& cols, 
+                             int& slices) = 0;
+        
+        virtual bool delvar(const char* var_name) = 0;
+
+        virtual bool get_matpath(const char** matname) =  0;
         
         virtual bool close() = 0;
         

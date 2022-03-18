@@ -7,7 +7,7 @@
 #include <boost/variant.hpp>
 #include <Eigen/Dense>
 
-#include <matlogger2/utils/visibility.h>
+#include "matlogger2/utils/visibility.h"
 
 namespace XBot
 {
