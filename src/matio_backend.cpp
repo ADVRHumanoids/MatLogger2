@@ -376,7 +376,7 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
     cols = mat_var->dims[1];
     int rank = mat_var->rank;
     
-    // mat_var->mem_conserve = 0;// this allows to remove all memory associated with the variable, except for the data field
+    mat_var->mem_conserve = 1;// this allows to remove all memory associated with the variable, except for the data field
 
     if (rank != 3){ // 2D data
 

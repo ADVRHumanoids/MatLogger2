@@ -237,12 +237,11 @@ TEST_F(BackendTest, read_variables)
         std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
         std::cout << "Variable: " << var_names[i] << "\n" << "dim: " << "("<< rows[i] << ", " << cols[i] << ", " << slices[i] << ")"<< std::endl; 
 
-        // Mat.push_back(Eigen::Map<Eigen::MatrixXd>(data[i], rows[i], cols[i] * (slices[i])));
+        Mat.push_back(Eigen::Map<Eigen::MatrixXd>(data[i], rows[i], cols[i] * (slices[i])));
         
-        // std::cout << "data: " << Mat[i] << std::endl;
+        std::cout << "data: " << Mat[i] << std::endl;
         
-        // std::cout << "mapped data dimension check: " << "(" << Mat[i].rows() << ", " << Mat[i].cols() << ")" << std::endl;
-
+        std::cout << "mapped data dimension check: " << "(" << Mat[i].rows() << ", " << Mat[i].cols() << ")" << std::endl;
         
     }
 
