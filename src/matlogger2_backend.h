@@ -8,6 +8,8 @@
 
 #include "matlogger2/mat_data.h"
 
+#include "Eigen/Dense"
+
 namespace XBot { namespace matlogger2 {
    
     class MATL2_API Backend
@@ -17,6 +19,8 @@ namespace XBot { namespace matlogger2 {
         
         typedef std::unique_ptr<Backend> UniquePtr;
         typedef std::shared_ptr<Backend> Ptr;
+
+        typedef Eigen::Map<Eigen::MatrixXd> EigenMap;
         
         static UniquePtr MakeInstance(std::string type);
         
@@ -39,10 +43,7 @@ namespace XBot { namespace matlogger2 {
                            const MatData& data);
 
         virtual bool readvar(const char* var_name, 
-                             double** data, 
-                             int& rows, 
-                             int& cols, 
-                             int& slices) = 0;
+                             Eigen::MatrixXd& mat_data) = 0;
         
         virtual bool delvar(const char* var_name) = 0;
 

@@ -329,7 +329,8 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
     
 }
 
- bool MatioBackend::readvar(const char* var_name, double** data, int& rows, int& cols, int& slices)
+
+bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data)
 {
     int err = 0;  
     
@@ -369,27 +370,16 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
 
     // int data_size = mat_var->data_size;
     // memmove(*data, const void* mat_var->data, data_size * mat_var->dims[0] * mat_var->dims[1]); // copying data field to memory pointed by the output data pointer to avoid losing data upon variable deletion
-
-    *data  = (double*) mat_var->data ; // copying data field to output data
     
-    rows = mat_var->dims[0];
-    cols = mat_var->dims[1];
+    int rows = mat_var->dims[0];
+    int cols = mat_var->dims[1];
     int rank = mat_var->rank;
     
-    mat_var->mem_conserve = 1;// this allows to remove all memory associated with the variable, except for the data field
+    // mat_var->mem_conserve = 1;// this allows to remove all memory associated with the variable, except for the data field
 
-    if (rank != 3){ // 2D data
+    int slices = rank != 3 ? 1 : mat_var->dims[2];
 
-        slices = 1; // MatIO assigns slices = 0 for 2D data; here setting it to 1 to avoid issues when using this number externally.
-        
-        // free pointer to mat variable
-
-        Mat_VarFree(mat_var); // free all the memory allocated for the variable
-
-        return 0 == err;
-    }
-
-    slices = mat_var->dims[2]; // never reached if the variable is 2D data
+    mat_data = EigenMap((double*) mat_var->data, rows, cols * (slices)); // mapping variable data to an Eigen Matrix
 
     Mat_VarFree(mat_var); // free all the memory allocated for the variable
 

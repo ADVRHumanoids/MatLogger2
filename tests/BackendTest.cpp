@@ -1,11 +1,10 @@
 #include "matio_backend.h"
-#include "matlogger2/matlogger2.h"
+// #include "matlogger2/matlogger2.h"
 
 #include <gtest/gtest.h>
 
 #include <cstdio>
 #include <iostream>
-#include <Eigen/StdVector>
 #include <signal.h>
 #include <chrono>
 #include <list>
@@ -210,6 +209,9 @@ TEST_F(BackendTest, write_mat_test)
 TEST_F(BackendTest, read_variables)
 {
     std::unique_ptr<XBot::matlogger2::Backend> _backend;
+
+    typedef Eigen::Map<Eigen::MatrixXd, 0> EigenMap;
+
     std::vector<std::string> var_names;
     std::vector<Eigen::MatrixXd> Mat;
 
@@ -224,28 +226,28 @@ TEST_F(BackendTest, read_variables)
 
     int n_vars = var_names.size();
     
-    std::vector<double*> data(n_vars);
     std::vector<int> rows(n_vars);
     std::vector<int> cols(n_vars);
-    std::vector<int> slices(n_vars); 
-
+    std::vector<int> slices(n_vars);
+    std::vector<Eigen::MatrixXd,Eigen::aligned_allocator<Eigen::MatrixXd> > mat_data(n_vars);
 
     for (int i = 0; i < n_vars; ++i) // printing info on all variables
     {
-        bool is_varread_ok = _backend->readvar(var_names[i].c_str(), (&data[i]), rows[i], cols[i], slices[i]);
+        bool is_varread_ok = _backend->readvar(var_names[i].c_str(), mat_data[i]);
 
         std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
         std::cout << "Variable: " << var_names[i] << "\n" << "dim: " << "("<< rows[i] << ", " << cols[i] << ", " << slices[i] << ")"<< std::endl; 
 
-        Mat.push_back(Eigen::Map<Eigen::MatrixXd>(data[i], rows[i], cols[i] * (slices[i])));
+        // auto map = Eigen::Map<Eigen::MatrixXd> (data[i], rows[i], cols[i] * (slices[i]);
+
+        // Mat.push_back( EigenMap (data[i], rows[i], cols[i] * (slices[i])));
         
-        std::cout << "data: " << Mat[i] << std::endl;
+        std::cout << "data: " << mat_data[i] << std::endl;
         
-        std::cout << "mapped data dimension check: " << "(" << Mat[i].rows() << ", " << Mat[i].cols() << ")" << std::endl;
+        std::cout << "mapped data dimension check: " << "(" << mat_data[i].rows() << ", " << mat_data[i].cols() << ")" << std::endl;
         
     }
 
-    // data.clear();
     _backend->close();
 }
 
