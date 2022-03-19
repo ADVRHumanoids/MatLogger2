@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <Eigen/Dense>
+
 inline bool file_exists(const std::string& name) 
 {
     std::ifstream f(name.c_str());
@@ -167,7 +169,9 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
     if (slices <= 0){ // when adding data, allow only up to 2D data to be appended.
 
         fprintf(stderr, "MatioBackend::write: Not valid value %d for slices parameter. It must be a strictly positive integer.\n", slices);
+       
         err++;
+       
         return 0 == err;
 
     }
@@ -179,131 +183,162 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
     dims[2] = slices;
 
     // See if the variable already exists
-    matvar_t* mat_var_prev = Mat_VarRead(_mat_file, var_name);
+    matvar_t* mat_var = Mat_VarRead(_mat_file, var_name);
 
-    if (mat_var_prev == NULL){ // variable does not exist 
-        
+    if (mat_var == NULL){ // variable does not exist 
+
+        mat_var = Mat_VarCreate(var_name,
+                                MAT_C_DOUBLE,
+                                MAT_T_DOUBLE,
+                                n_dims,
+                                dims,
+                                (void *)data,
+                                MAT_F_DONT_COPY_DATA); // create variable and assign a pointer to it
+
+        if ( mat_var == NULL ) { // creation of variable failed
+
+            fprintf(stderr, "MatioBackend::write: Call to Mat_VarCreate failed. \n");
+
+            err++;
+
+            // free pointer to mat variable
+            Mat_VarFree(mat_var);
+
+            return 0 == err;
+
+        }
+
         append_dim = n_dims; // overwrites user input, in case it was provided
 
     }
     else{ // variables already exists
         
-        int rows_prev = mat_var_prev->dims[0];
-        int cols_prev = mat_var_prev->dims[1];
-        int rank_prev = mat_var_prev->rank;
-
-        if (slices > 1){append_dim = 3;} // if the data to be appended is 3D, append it to the third dimension (if compatible)
-
-        // Checks on append_dim:
+        int rows_prev = mat_var->dims[0];
+        int cols_prev = mat_var->dims[1];
+        int rank_prev = mat_var->rank;
 
         if (append_dim != 1 && append_dim != 2 && append_dim != 3){ // append_dim not valid
 
             fprintf(stderr, "MatioBackend::write: Please provide a valid append direction (provided is %d).\n Allowed values are: 1(rows-wise), 2(column-wise), 3(slice-wise).\n", append_dim);
+            
             err++;
+
+            // free pointer to previous mat variable
+            Mat_VarFree(mat_var);
+            
             return 0 == err;
 
         } 
-    
-        if (append_dim == 3){ // check input data compatibility for 3rd dimension append operation
+
+        if (slices > 1){ append_dim = 3; } // if the data to be appended is 3D, append it (if possible) to the third dimension. 
+
+        // At this point, the program will enter one of the following 3 if blocks, based on the desired append direction
+
+        if (append_dim == 3){ // check rows and cols compatibility for 3rd dimension append operation
 
             if (!(rows_prev == rows && cols_prev == cols)){
 
-                fprintf(stderr, "MatioBackend::write: Cannot append data to existing variable along 3rd dimension (slice-wise).\n New data has dimensions (%d, %d),  while the preexisting data (%d, %d).\n",
+                fprintf(stderr, "MatioBackend::write: Cannot append data to existing variable along 3rd dimension (slice-wise).\n New data has slice dimensions (%d, %d),  while the preexisting data (%d, %d).\n",
                         rows, rows_prev, cols, cols_prev);
+                
                 err++;
+
+                // free pointer to previous mat variable
+                Mat_VarFree(mat_var);
+
                 return 0 == err;
 
             }
 
-            if (rank_prev != 3){ // trying to append 2D data along the 3rd dimension of a previously existing variable with slices = 0. Not allowed by MatIO. 
+            if (rank_prev != 3){ 
 
                 fprintf(stderr, "MatioBackend::write: Cannot append new 2D data to already existent 2D variable %s along dimension %d, since it does not have one. Not allowed by MatIO. \n", var_name, append_dim);
+               
                 err++;
+
+                // free pointer to previous mat variable
+                Mat_VarFree(mat_var);
+
                 return 0 == err;
 
             }
 
-            n_dims = 3; // trying to append 2D data in the third dimension --> overwriting n_dims(which otherwise would be 2), to allow MatIO to add this data.
+            n_dims = 3; // trying to append data in the third dimension --> overwriting n_dims, to allow MatIO to add this data also in case of input 2D data.
         }
+
         if (append_dim == 2){ // check input data compatibility for 2nd dimension append operation
 
             if (!(rows_prev == rows)){ // rows do not match
 
                 fprintf(stderr, "MatioBackend::write: Cannot append data to existing variable along 2rd dimension (column-wise).\n New data has (%d) rows, while the preexisting  one has (%d) rows.\n",
                         rows, rows_prev);
+                
                 err++;
+                
+                // free pointer to previous mat variable
+                Mat_VarFree(mat_var);
+
                 return 0 == err;
 
             }
         }
+
         if (append_dim == 1){ // check input data compatibility for 1st dimension append operation
 
             if (!(cols_prev == cols)){
 
                 fprintf(stderr, "MatioBackend::write: Cannot append data to existing variable along 1st dimension (row-wise).\n New data has %d columns,  while the preexisting one has %d columns.\n",
                         cols, cols_prev);
+                
                 err++;
+
+                // free pointer to previous mat variable
+                Mat_VarFree(mat_var);
+
                 return 0 == err;
 
             }
         }
 
-        // append_dim is now (reasonably) valid
+        // After these checks, the input data is appendable
 
     }
-
-    // free previous mat variable
-    Mat_VarFree(mat_var_prev);
-
-    matvar_t* mat_var = Mat_VarCreate(var_name,
-                                MAT_C_DOUBLE,
-                                MAT_T_DOUBLE,
-                                n_dims,
-                                dims,
-                                (void *)data,
-                                MAT_F_DONT_COPY_DATA);
     
-    if ( mat_var == NULL ) { // check if mat file object exists
-
-        fprintf(stderr, "MatioBackend::write: Call to Mat_VarCreate failed. \n");
-
-        err++;
-
-        return 0 == err;
-
-    }
-
     int ret = Mat_VarWriteAppend(_mat_file, 
                                 mat_var, 
                                 _compression, 
                                 append_dim); // TBD compression from 
                                             // user
     
+    // free pointer to mat variable
+    Mat_VarFree(mat_var); 
+
     if(ret != 0)
     {
         fprintf(stderr,
                 "Mat_VarWriteAppend failed with code %d "
                 "while writing variable '%s' (%d x %d x %d) \n",
                 ret, var_name, rows, cols, slices);
+
         err++;
+
         return 0 == err;
     }
-
-    // free mat variable
-    Mat_VarFree(mat_var); 
 
     return 0 == err;
     
 }
 
-bool MatioBackend::readvar(const char* var_name, double** data, int& rows, int& cols, int& slices)
+ bool MatioBackend::readvar(const char* var_name, double** data, int& rows, int& cols, int& slices)
 {
     int err = 0;  
     
     if ( _mat_file == NULL ) { // check if mat file object exists
 
         fprintf(stderr, "MatioBackend::readvar: Failed to find mat object. Did you remember to call either the init() or load() methods first? \n");
+        
         err++;
+
         return 0 == err;
 
     }
@@ -313,31 +348,50 @@ bool MatioBackend::readvar(const char* var_name, double** data, int& rows, int& 
     if ( mat_var == NULL ) { // variable empty (reading failed)
 
         fprintf(stderr, "MatioBackend::readvar: Failed to read the required variable. Check that you have provided a valid variable name. \n");
+        
         err++;
+
+        Mat_VarFree(mat_var);
+
         return 0 == err;
     }
 
     if ( mat_var->data == NULL ) { // empty data
 
         fprintf(stderr, "MatioBackend::readvar: Variable read, but empty data field. \n");
+        
         err++;
+
+        Mat_VarFree(mat_var);
+
         return 0 == err;
     }
 
-    *data = (double*) mat_var->data;
+    // int data_size = mat_var->data_size;
+    // memmove(*data, const void* mat_var->data, data_size * mat_var->dims[0] * mat_var->dims[1]); // copying data field to memory pointed by the output data pointer to avoid losing data upon variable deletion
+
+    *data  = (double*) mat_var->data ; // copying data field to output data
+    
     rows = mat_var->dims[0];
     cols = mat_var->dims[1];
     int rank = mat_var->rank;
     
+    // mat_var->mem_conserve = 0;// this allows to remove all memory associated with the variable, except for the data field
+
     if (rank != 3){ // 2D data
+
         slices = 1; // MatIO assigns slices = 0 for 2D data; here setting it to 1 to avoid issues when using this number externally.
+        
+        // free pointer to mat variable
+
+        Mat_VarFree(mat_var); // free all the memory allocated for the variable
+
         return 0 == err;
     }
 
-    slices = mat_var->dims[2];
+    slices = mat_var->dims[2]; // never reached if the variable is 2D data
 
-    // free mat variable
-    Mat_VarFree(mat_var); // causes memory leak for some reason
+    Mat_VarFree(mat_var); // free all the memory allocated for the variable
 
     return 0 == err;
     

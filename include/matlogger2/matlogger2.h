@@ -8,10 +8,10 @@
 #include <queue>
 #include <Eigen/Dense>
 
-#include <matlogger2/utils/var_buffer.h>
-#include <matlogger2/mat_data.h>
+#include "matlogger2/utils/var_buffer.h"
+#include "matlogger2/mat_data.h"
 
-#include <matlogger2/utils/visibility.h>
+#include "matlogger2/utils/visibility.h"
 
 namespace XBot 
 {
@@ -229,14 +229,9 @@ namespace XBot
 
         std::unique_ptr<MutexImpl> _matdata_queue_mutex;
         std::queue<std::pair<std::string, matlogger2::MatData>> _matdata_queue;
-
-
-        
         
     };
     
-
-
 }
 
 template <typename... Args>

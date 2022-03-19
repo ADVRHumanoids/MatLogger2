@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <matlogger2/matlogger2.h>
-#include <matlogger2/utils/mat_appender.h>
-#include <matlogger2/mat_data.h>
+#include "matlogger2/matlogger2.h"
+#include "matlogger2/utils/mat_appender.h"
+#include "matlogger2/mat_data.h"
 #include <signal.h>
 #include <chrono>
 #include <list>
