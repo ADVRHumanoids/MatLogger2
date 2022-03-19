@@ -43,7 +43,8 @@ namespace XBot { namespace matlogger2 {
                            const MatData& data);
 
         virtual bool readvar(const char* var_name, 
-                             Eigen::MatrixXd& mat_data) = 0;
+                            Eigen::MatrixXd& mat_data,
+                            int& slices) = 0;
         
         virtual bool delvar(const char* var_name) = 0;
 

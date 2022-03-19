@@ -330,7 +330,7 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
 }
 
 
-bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data)
+bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int& slices)
 {
     int err = 0;  
     
@@ -377,7 +377,7 @@ bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data)
     
     // mat_var->mem_conserve = 1;// this allows to remove all memory associated with the variable, except for the data field
 
-    int slices = rank != 3 ? 1 : mat_var->dims[2];
+    slices = rank != 3 ? 1 : mat_var->dims[2];
 
     mat_data = EigenMap((double*) mat_var->data, rows, cols * (slices)); // mapping variable data to an Eigen Matrix
 

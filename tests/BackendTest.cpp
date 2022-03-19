@@ -229,11 +229,13 @@ TEST_F(BackendTest, read_variables)
     std::vector<int> rows(n_vars);
     std::vector<int> cols(n_vars);
     std::vector<int> slices(n_vars);
-    std::vector<Eigen::MatrixXd,Eigen::aligned_allocator<Eigen::MatrixXd> > mat_data(n_vars);
+    std::vector< Eigen::MatrixXd,Eigen::aligned_allocator<Eigen::MatrixXd> > mat_data(n_vars);
 
     for (int i = 0; i < n_vars; ++i) // printing info on all variables
     {
-        bool is_varread_ok = _backend->readvar(var_names[i].c_str(), mat_data[i]);
+        bool is_varread_ok = _backend->readvar(var_names[i].c_str(), mat_data[i], slices[i]);
+        rows[i] = mat_data[i].rows();
+        cols[i] = mat_data[i].cols()/slices[i]; // actual number of columns per slice
 
         std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
         std::cout << "Variable: " << var_names[i] << "\n" << "dim: " << "("<< rows[i] << ", " << cols[i] << ", " << slices[i] << ")"<< std::endl; 
@@ -243,9 +245,7 @@ TEST_F(BackendTest, read_variables)
         // Mat.push_back( EigenMap (data[i], rows[i], cols[i] * (slices[i])));
         
         std::cout << "data: " << mat_data[i] << std::endl;
-        
-        std::cout << "mapped data dimension check: " << "(" << mat_data[i].rows() << ", " << mat_data[i].cols() << ")" << std::endl;
-        
+            
     }
 
     _backend->close();
