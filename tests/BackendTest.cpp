@@ -136,9 +136,33 @@ TEST_F(BackendTest, write_mat_test)
         }
     }
 
+    // Creating a structure
+    auto struct_data = XBot::matlogger2::MatData::make_struct();
+    struct_data["field_1"] = XBot::matlogger2::MatData::make_cell(3);
+    struct_data["field_2"] = new_var2;
+    struct_data["field_3"] = XBot::matlogger2::MatData::make_struct();
+
+    struct_data["field_1"].asCell() = {1.0,
+            "ci\nao",
+            Eigen::MatrixXd::Identity(2,5)};
+    
+    struct_data["field_3"]["subfield_1"] = 1;
+    struct_data["field_3"]["subfield_2"] = 2.0;
+    struct_data["field_3"]["subfield_3"] = 3.0;
+    struct_data["field_3"]["subfield_4"] = 4.0;
+
+    // Creating a cell
+
+    int cell_size = 3;
+    auto cell_data = XBot::matlogger2::MatData::make_cell(cell_size);
+    cell_data[0] = Eigen::Vector2d::Random();
+    cell_data[1] = Eigen::Vector3d::Random();
+    cell_data[2] = Eigen::Vector4d::Random();
+
+
     double time;
 
-    // Writing to file
+    // Writing 2D matrix to file
     uint64_t bytes1 = 0;
     bytes1 = new_var1.size() * sizeof(new_var1[0]);
     
@@ -149,12 +173,12 @@ TEST_F(BackendTest, write_mat_test)
             _backend->write(new_var_name1.c_str(),
                             new_var1.data(),
                             n_rows1, n_cols1, n_slices1);
-}
+        }
     );
 
     std::cout << "Written variable " << new_var_name1 << " (" << bytes1 * 1e-6 << " MB)" << " in " << time << " s" << std::endl;
 
-    // Writing to file
+    // Writing 3D matrix to file
     uint64_t bytes2 = 0;
     bytes2 = new_var2.size() * sizeof(new_var2[0]);
 
@@ -170,7 +194,7 @@ TEST_F(BackendTest, write_mat_test)
 
     std::cout << "Written variable " << new_var_name2 << " (" << bytes2 * 1e-6 << " MB)" << " in " << time << " s" << std::endl;
 
-    // Writing to file
+    // Writing row vector to file
     uint64_t bytes3 = 0;
     bytes3 = new_var3.size() * sizeof(new_var3[0]);
 
@@ -186,7 +210,7 @@ TEST_F(BackendTest, write_mat_test)
 
     std::cout << "Written variable " << new_var_name3 << " (" << bytes3 * 1e-6 << " MB)" << " in " << time << " s" << std::endl;
 
-    // Writing to file
+    // Writing column vector to file
     uint64_t bytes4 = 0;
     bytes4 = new_var4.size() * sizeof(new_var4[0]);
 
@@ -201,6 +225,12 @@ TEST_F(BackendTest, write_mat_test)
     );
 
     std::cout << "Written variable " << new_var_name4 << " (" << bytes4 * 1e-6 << " MB)" << " in " << time << " s" << std::endl;
+
+    // Writing structure to file
+    _backend->write_container("structure", struct_data);
+
+    // Writing cell to file 
+    _backend->write_container("cell", cell_data);
 
     _backend->close();
 
@@ -229,7 +259,7 @@ TEST_F(BackendTest, read_variables)
     std::vector<int> rows(n_vars);
     std::vector<int> cols(n_vars);
     std::vector<int> slices(n_vars);
-    std::vector< Eigen::MatrixXd,Eigen::aligned_allocator<Eigen::MatrixXd> > mat_data(n_vars);
+    std::vector< Eigen::MatrixXd, Eigen::aligned_allocator<Eigen::MatrixXd> > mat_data(n_vars);
 
     for (int i = 0; i < n_vars; ++i) // printing info on all variables
     {
@@ -239,10 +269,6 @@ TEST_F(BackendTest, read_variables)
 
         std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
         std::cout << "Variable: " << var_names[i] << "\n" << "dim: " << "("<< rows[i] << ", " << cols[i] << ", " << slices[i] << ")"<< std::endl; 
-
-        // auto map = Eigen::Map<Eigen::MatrixXd> (data[i], rows[i], cols[i] * (slices[i]);
-
-        // Mat.push_back( EigenMap (data[i], rows[i], cols[i] * (slices[i])));
         
         std::cout << "data: " << mat_data[i] << std::endl;
             

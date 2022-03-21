@@ -589,7 +589,7 @@ matvar_t * make_matvar(const std::string& name, const MatData& matdata)
 
 }
 
-bool XBot::matlogger2::MatioBackend::write_container(const char * name,
+bool MatioBackend::write_container(const char * name,
                                                      const MatData & data)
 {
 

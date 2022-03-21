@@ -26,7 +26,7 @@ class MATL2_API MatScalarType;
  * @brief The MatData class incapsulates a MATLAB-style variable
  * in a more modern C++ setting. It supports arbitrarily nested
  * structs, cell arrays and scalar values. Type-safety is enforced
- * at runtime (excpetions are thrown on wrong data interpretation).
+ * at runtime (exceptions are thrown on wrong data interpretation).
  *
  * The MatData class has value semantics, i.e. it can be copied.
  */
@@ -40,10 +40,10 @@ public:
 
     /* Construct scalar element from type convertible to either
             - double
-            - std::strung
+            - std::string
             - Eigen::MatrixXd
     */
-    template <typename T = double>
+    template <typename T = double> // default template typename double
     MatData(const T& value);
 
     /* Copy constructor (deep copy) */
@@ -51,15 +51,15 @@ public:
     MatData(MatData&& other) = default;
 
     /* Copy assignment (deep copy) */
-    MatData& operator=(const MatData& rhs);
-    MatData& operator=(MatData&& rhs) = default;
+    MatData& operator = (const MatData& rhs); // rhs -> right hand side
+    MatData& operator = (MatData&& rhs) = default;
 
     /* Factories for struct and cell types (for scalar, use constructor) */
     static MatData make_struct();
     static MatData make_cell(int size = 0);
 
     /* Type checkers */
-    bool is_struct() const;
+    bool is_struct() const; 
     bool is_cell() const;
     bool is_scalar() const;
 
@@ -73,13 +73,12 @@ public:
     const std::vector<MatData>& asCell() const;
 
     /* Direct access to cell elements */
-    MatData& operator[](int i);
-    const MatData& operator[](int i) const;
+    MatData& operator [] (int i);
+    const MatData& operator [] (int i) const;
 
     /* Direct access to struct elements */
-    MatData& operator[](const std::string& key);
-    const MatData& operator[](const std::string& key) const;
-
+    MatData& operator [] (const std::string& key);
+    const MatData& operator [] (const std::string& key) const;
 
     /* Print to ostream object */
     void print(std::ostream& os = std::cout) const;

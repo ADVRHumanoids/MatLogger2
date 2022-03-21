@@ -116,22 +116,22 @@ const std::vector<MatData> & MatData::asCell() const
     return _data_ptr->getCell();
 }
 
-MatData & MatData::operator[](int i)
+MatData & MatData::operator [] (int i)
 {
     return asCell()[i];
 }
 
-const MatData & MatData::operator[](int i) const
-{
+const MatData & MatData::operator [] (int i) const
+{ 
     return asCell()[i];
 }
 
-MatData & MatData::operator[](const std::string & key)
+MatData & MatData::operator [] (const std::string& key)
 {
     return asStruct()[key];
 }
 
-const MatData & MatData::operator[](const std::string & key) const
+const MatData & MatData::operator [] (const std::string& key) const
 {
     return asStruct().at(key);
 }
@@ -147,7 +147,7 @@ MatData::MatData(const MatData & other)
     _data_ptr = other._data_ptr->clone();
 }
 
-MatData& MatData::operator=(const MatData & rhs)
+MatData& MatData::operator = (const MatData& rhs)
 {
     if(this == &rhs)
     {
@@ -224,11 +224,11 @@ bool MatDataBase::is_cell() const { return false; }
 
 bool MatDataBase::is_scalar() const { return false; }
 
-MatScalarType & MatDataBase::getScalar() { throw bad_type("scalar", type()); }
+MatScalarType& MatDataBase::getScalar() { throw bad_type("scalar", type()); }
 
-std::map<std::string, MatData> & MatDataBase::getStruct() { throw bad_type("struct", type()); }
+std::map<std::string, MatData>& MatDataBase::getStruct() { throw bad_type("struct", type()); }
 
-std::vector<MatData> & MatDataBase::getCell() { throw bad_type("cell", type()); }
+std::vector<MatData>& MatDataBase::getCell() { throw bad_type("cell", type()); }
 
 bad_type::bad_type(std::string req, std::string actual)
 {
@@ -236,7 +236,7 @@ bad_type::bad_type(std::string req, std::string actual)
     this->actual = actual;
 }
 
-const char * bad_type::what() const noexcept
+const char* bad_type::what() const noexcept
 {
     return ("Requested type '" + req + "' does not match the actual type '" + actual + "'").c_str();
 }
