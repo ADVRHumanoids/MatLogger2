@@ -241,7 +241,5 @@ const char* bad_type::what() const noexcept
     return ("Requested type '" + req + "' does not match the actual type '" + actual + "'").c_str();
 }
 
-
-
 }
 }

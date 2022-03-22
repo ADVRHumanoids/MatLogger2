@@ -155,9 +155,10 @@ TEST_F(BackendTest, write_mat_test)
 
     int cell_size = 3;
     auto cell_data = XBot::matlogger2::MatData::make_cell(cell_size);
+
     cell_data[0] = Eigen::Vector2d::Random();
     cell_data[1] = Eigen::Vector3d::Random();
-    cell_data[2] = Eigen::Vector4d::Random();
+    cell_data[2] = "prova";
 
 
     double time;
@@ -226,6 +227,10 @@ TEST_F(BackendTest, write_mat_test)
 
     std::cout << "Written variable " << new_var_name4 << " (" << bytes4 * 1e-6 << " MB)" << " in " << time << " s" << std::endl;
 
+    std::vector<std::string> matdata_varnames(2);
+    matdata_varnames[0] = "structure";
+    matdata_varnames[1] = "cell";
+
     // Writing structure to file
     _backend->write_container("structure", struct_data);
 
@@ -244,6 +249,7 @@ TEST_F(BackendTest, read_variables)
 
     std::vector<std::string> var_names;
     std::vector<Eigen::MatrixXd> Mat;
+    XBot::matlogger2::MatData read_var;
 
     std::string mat_path = "/tmp/write_test.mat";
 
@@ -260,19 +266,37 @@ TEST_F(BackendTest, read_variables)
     std::vector<int> cols(n_vars);
     std::vector<int> slices(n_vars);
     std::vector< Eigen::MatrixXd, Eigen::aligned_allocator<Eigen::MatrixXd> > mat_data(n_vars);
+    
+    std::cout << "--- Standard variable reading test ---" << std::endl;
 
+    int j = 0;
     for (int i = 0; i < n_vars; ++i) // printing info on all variables
-    {
-        bool is_varread_ok = _backend->readvar(var_names[i].c_str(), mat_data[i], slices[i]);
-        rows[i] = mat_data[i].rows();
-        cols[i] = mat_data[i].cols()/slices[i]; // actual number of columns per slice
+    {   
+        j = i;
+        if ((var_names[j] != "structure") && (var_names[j] != "cell")){ // use the standard readvar method
 
-        std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
-        std::cout << "Variable: " << var_names[i] << "\n" << "dim: " << "("<< rows[i] << ", " << cols[i] << ", " << slices[i] << ")"<< std::endl; 
+            bool is_varread_ok = _backend->readvar(var_names[j].c_str(), mat_data[j], slices[j]);
+            rows[j] = mat_data[j].rows();
+            cols[j] = mat_data[j].cols()/slices[j]; // actual number of columns per slice
+
+            std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
+            std::cout << "Variable: " << var_names[j] << "\n" << "dim: " << "("<< rows[j] << ", " << cols[j] << ", " << slices[j] << ")"<< std::endl; 
+            
+            std::cout << "data: " << mat_data[j] << std::endl;
+
+        }
         
-        std::cout << "data: " << mat_data[i] << std::endl;
             
     }
+    
+    std::cout << "--- Struct/Cell variable reading test ---" << std::endl;
+
+    bool is_varread_ok = _backend->read_container("structure", read_var);
+
+    std::cout << "struct read ok:" << is_varread_ok << std::endl;
+    read_var.print();
+
+    _backend->write_container("struct_copy", read_var);
 
     _backend->close();
 }

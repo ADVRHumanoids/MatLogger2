@@ -19,8 +19,6 @@ namespace XBot { namespace matlogger2 {
         
         typedef std::unique_ptr<Backend> UniquePtr;
         typedef std::shared_ptr<Backend> Ptr;
-
-        typedef Eigen::Map<Eigen::MatrixXd> EigenMap;
         
         static UniquePtr MakeInstance(std::string type);
         
@@ -33,19 +31,22 @@ namespace XBot { namespace matlogger2 {
 
         virtual bool get_var_names(std::vector<std::string>& var_names) = 0;
 
-        virtual bool write(const char * var_name, 
-                           const double * data, 
+        virtual bool write(const char* var_name, 
+                           const double* data, 
                            int rows, int cols, 
                            int slices, 
                            int append_dim = 2) = 0;
 
-        virtual bool write_container(const char * name,
+        virtual bool write_container(const char* name,
                            const MatData& data);
 
         virtual bool readvar(const char* var_name, 
                             Eigen::MatrixXd& mat_data,
                             int& slices) = 0;
-        
+
+        virtual bool read_container(const char* var_name, 
+                                    MatData& data);
+
         virtual bool delvar(const char* var_name) = 0;
 
         virtual bool get_matpath(const char** matname) =  0;

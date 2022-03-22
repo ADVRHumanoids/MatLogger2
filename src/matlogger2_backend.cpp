@@ -85,6 +85,7 @@ virtual bool load(std::string matfile_path, bool enable_write_access = false){re
 virtual bool get_var_names(std::vector<std::string>& var_names){return true;}
 virtual bool write(const char* var_name, const double* data, int rows, int cols, int slices, int append_dim){return true;}
 virtual bool readvar(const char* var_name, Eigen::MatrixXd& mat_data, int& slices){return true;}  
+virtual bool read_container(const char* var_name, XBot::matlogger2::MatData& data){return true;}
 virtual bool get_matpath(const char** matname){return true;}
 virtual bool delvar(const char* var_name){return true;}
 
@@ -100,7 +101,12 @@ XBot::matlogger2::Backend::UniquePtr XBot::matlogger2::Backend::MakeInstance(std
     return GetFactory<Backend>("libmatlogger2-backend-" + type + MATLOGGER2_LIB_EXT);
 }
 
-bool XBot::matlogger2::Backend::write_container(const char * name, const XBot::matlogger2::MatData & data)
+bool XBot::matlogger2::Backend::write_container(const char * name, const XBot::matlogger2::MatData& data)
+{
+    return false;
+}
+
+bool XBot::matlogger2::Backend::read_container(const char * name, XBot::matlogger2::MatData& data)
 {
     return false;
 }

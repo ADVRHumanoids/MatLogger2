@@ -48,7 +48,7 @@ public:
 
     /* Copy constructor (deep copy) */
     MatData(const MatData& other);
-    MatData(MatData&& other) = default;
+    MatData(MatData&& other) = default; // default move constructor
 
     /* Copy assignment (deep copy) */
     MatData& operator = (const MatData& rhs); // rhs -> right hand side
@@ -56,7 +56,7 @@ public:
 
     /* Factories for struct and cell types (for scalar, use constructor) */
     static MatData make_struct();
-    static MatData make_cell(int size = 0);
+    static MatData make_cell(int size = 0); // default move constructor
 
     /* Type checkers */
     bool is_struct() const; 

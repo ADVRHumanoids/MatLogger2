@@ -23,10 +23,11 @@ namespace XBot { namespace matlogger2 {
 
         virtual bool write(const char * var_name, const double* data, int rows, int cols, int slices, int append_dim = 2) override;
         
-        bool write_container(const char * name,
-                             const MatData & data) override;
+        virtual bool write_container(const char * name, const MatData& data) override;
 
         virtual bool readvar(const char* var_name, Eigen::MatrixXd& mat_data, int& slices) override;
+
+        virtual bool read_container(const char* var_name, MatData& data) override;
 
         virtual bool delvar(const char* var_name) override;
 
