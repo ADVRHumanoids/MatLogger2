@@ -44,7 +44,7 @@ bool MatioBackend::init(std::string logger_name,
     
     if ( _mat_file == NULL ) { // check if mat file object is empty
 
-        fprintf(stderr, "MatioBackend::load: Failed to create mat file.\n");
+        fprintf(stderr, "MatioBackend::init: Failed to create mat file.\n");
 
         err++;
 
@@ -55,7 +55,7 @@ bool MatioBackend::init(std::string logger_name,
     _compression = enable_compression ? MAT_COMPRESSION_ZLIB : MAT_COMPRESSION_NONE;
     
     return bool(_mat_file);
-}
+} // Initialize backend, given a name for the mat file.
 
 bool MatioBackend::load(std::string matfile_path, bool enable_writing_access = false)
 {
@@ -94,7 +94,7 @@ bool MatioBackend::load(std::string matfile_path, bool enable_writing_access = f
 
     return 0 == err;
 
-}
+} // Load an already existent mat file inside the backend
 
 bool MatioBackend::get_var_names(std::vector<std::string>& var_names)
 {
@@ -140,7 +140,32 @@ bool MatioBackend::get_var_names(std::vector<std::string>& var_names)
     }
 
     return 0 == err;
-}
+} // Retrieve all variable names 
+
+bool MatioBackend::get_matpath(const char** matname)
+{   
+    int err = 0;
+
+    if ( _mat_file == NULL ) { // check if mat file object exists
+
+        fprintf(stderr, "MatioBackend::get_matpath: Failed to find mat object. Did you remember to call either the init() or load() methods first? \n");
+        err++;
+        return 0 == err;
+
+    }
+
+    *matname = Mat_GetFilename(_mat_file);
+
+    if ( matname == NULL ) {
+
+        fprintf(stderr, "MatioBackend::get_matpath: Mat_GetFilename failed to retrieve the file name.\n");
+        err++;
+        return 0 == err;
+
+    }
+    
+    return 0 == err;
+} // Method for retrieving the absolute path of the mat file loaded in the current instance of the backend
 
 bool MatioBackend::write(const char* var_name, const double* data, int rows, int cols, int slices, int append_dim)
 {
@@ -327,7 +352,7 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
 
     return 0 == err;
     
-}
+} // Method for writing/appending basic numeric variables to file (i.e. matrices)
 
 bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int& slices)
 {
@@ -387,7 +412,7 @@ bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int&
 
     return 0 == err;
     
-}
+} // Method for reading basic numeric variable (i.e. matrices)
 
 bool MatioBackend::delvar(const char* var_name)
 {
@@ -413,39 +438,14 @@ bool MatioBackend::delvar(const char* var_name)
     }
 
     return 0 == err;
-}
-
-bool MatioBackend::get_matpath(const char** matname)
-{   
-    int err = 0;
-
-    if ( _mat_file == NULL ) { // check if mat file object exists
-
-        fprintf(stderr, "MatioBackend::get_matpath: Failed to find mat object. Did you remember to call either the init() or load() methods first? \n");
-        err++;
-        return 0 == err;
-
-    }
-
-    *matname = Mat_GetFilename(_mat_file);
-
-    if ( matname == NULL ) {
-
-        fprintf(stderr, "MatioBackend::get_matpath: Mat_GetFilename failed to retrieve the file name.\n");
-        err++;
-        return 0 == err;
-
-    }
-    
-    return 0 == err;
-}
+} // Method for deleting a specific variable
 
 bool MatioBackend::close()
 {
     return 0 == Mat_Close(_mat_file);
 }
 
-//////////////// Methods for container writing ///////////////////
+//////////////// Methods for container writing (parsing of a MatData into a matvar_t object) ///////////////////
 
 matvar_t* make_matvar(const std::string& name, const MatData& matdata); // forward declaration
 
@@ -515,9 +515,9 @@ matvar_t* make_scalar_matvar(const std::string& name, const MatData& scalar_matd
     visitor._name = name;
     return boost::apply_visitor(visitor, scalar_matdata.value());
 
-} // Based on the type of scalar_matdata, the recursive call to make_struct_matvar and make_cell_matvar methods 
-// will eventually decay into a make_scalar_matvar() and break the recursion. This method is in charge of actually 
-// generating the MatIO mat variable.
+} // The recursive call to make_cell_matvar and make_struct_matvar methods 
+// will eventually decay into a make_scalar_matvar() call and break the recursion.
+// make_scalar_matvar assigns data to the output matvar_t object, based on the type of scalar_matdata.
 
 matvar_t* make_struct_matvar(const std::string& name, const MatData& struct_matdata)
 {
@@ -551,8 +551,8 @@ matvar_t* make_struct_matvar(const std::string& name, const MatData& struct_matd
 
     return mat_struct;
 
-} // Creates the outer shell of the structure, and then calls make_matvar recursively for each element of the structure
-// until the bottom data layer is reached. At that point, make_scalar_matvar is called and the MatIO mat variable is created.
+} // Creates the outer shell of the structure, and then calls make_matvar recursively for each element
+// until the bottom data layer is reached. At that point, make_scalar_matvar is called and the MatIO final matvar_t* is returned.
 
 matvar_t* make_cell_matvar(const std::string& name, const MatData& cell_matdata)
 {
@@ -578,7 +578,7 @@ matvar_t* make_cell_matvar(const std::string& name, const MatData& cell_matdata)
     return outercell;
 
 } // Creates the outer cell and than calls recursively make_matvar for each element of the cell until the bottom data layer is reached.
-// At that point, make_scalar_matvar is callmake_scalar_matdataed and the MatIO mat variable is created.
+// At that point, make_scalar_matvar is called and the MatIO matvar_t* is returned.
 
 matvar_t* make_matvar(const std::string& name, const MatData& matdata)
 {
@@ -600,10 +600,9 @@ matvar_t* make_matvar(const std::string& name, const MatData& matdata)
 
     return elem_matvar;
 
-} // Call the right make_ method based on the provided data type
+} // Calls the right assembly method based on the input data type
 
-bool MatioBackend::write_container(const char* name,
-                                   const MatData& data)
+bool MatioBackend::write_container(const char* name, const MatData& data)
 {   
     int err = 0;
 
@@ -625,10 +624,9 @@ bool MatioBackend::write_container(const char* name,
 
     return ret == 0;
 
-} // creates a mat variable, based on the input data, writes it to file using MatIO and frees the memory allocated for it.
+} // Based on the input matdata, builds recursively the associated MatIO variable and then writes it to file.
 
-
-//////////////// Methods for container reading ///////////////////
+//////////////// Methods for container reading (parsing of a matvar_t into a MatData object) ///////////////////
 
 bool make_matdata(const matvar_t* mat_var, MatData& matdata); // forward declaration
 
@@ -675,12 +673,13 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
 
         err++;
 
-        return 0 == err; 
     }
 
     return 0 == err;
 
-}
+}// The recursive call to make_cell_matdata and make_struct_matdata methods 
+// will eventually decay into a make_scalar_matdata() call and break the recursion.
+// make_scalar_matdata assigns data to the provided MatData object, based on the type of scalar_mat_var.
 
 bool make_cell_matdata(const matvar_t* matio_cell_array, MatData& matdata)
 {
@@ -695,12 +694,16 @@ bool make_cell_matdata(const matvar_t* matio_cell_array, MatData& matdata)
     {
         matvar_t* cell = Mat_VarGetCell(const_cast<matvar_t*>(matio_cell_array), cell_index);
 
-        make_matdata(cell, matdata[cell_index]);
+        bool make_data_ok = make_matdata(cell, matdata[cell_index]);
+
+        make_data_ok ? : err++; 
+        
     }
 
     return 0 == err; 
 
-}
+}// Creates the outer cell and than calls recursively make_matdata for each element until the bottom data layer is reached.
+// At that point, make_scalar_matdata is called and provided matdata is fully populated.
 
 bool make_struct_matdata(const matvar_t* matio_structure, MatData& matdata)
 {
@@ -724,12 +727,15 @@ bool make_struct_matdata(const matvar_t* matio_structure, MatData& matdata)
     {
         matvar_t* struct_field = Mat_VarGetStructFieldByName(const_cast<matvar_t*>(matio_structure), field_names[i], 0);
 
-        make_matdata(struct_field, matdata[field_names[i]]);
+        bool make_data_ok = make_matdata(struct_field, matdata[field_names[i]]);
+
+        make_data_ok ? : err++; 
     }
 
     return 0 == err; 
 
-}
+}// Creates the outer structure and than calls recursively make_matdata for each element until the bottom data layer is reached.
+// At that point, make_scalar_matdata is called and provided matdata is fully populated.
 
 bool make_matdata(const matvar_t* mat_var, MatData& matdata)
 {
@@ -739,36 +745,33 @@ bool make_matdata(const matvar_t* mat_var, MatData& matdata)
     {
         size_t* cell_dims = mat_var->dims;
         
-        if (!(cell_dims[0] == 1 || cell_dims[1] == 1))
+        if (!(cell_dims[0] == 1 || cell_dims[1] == 1)) // cell dimension check
         {
             fprintf(stderr, "MatioBackend::make_matdata: Only up to one dimensional cell arrays are currently supported. \n");
         
             err++;
 
-            return 0 == err; 
         }
 
-        bool ret = 0;
-        ret = make_cell_matdata(mat_var, matdata);
+        bool make_cell_ok = make_cell_matdata(mat_var, matdata);
 
-        ret ? : err++; 
-
-        std::cout << "(" << cell_dims[0] << ", " << cell_dims[1] << ", " << cell_dims[2] << ")" << std::endl;
+        make_cell_ok ? : err++; 
 
     }
     else if(mat_var->class_type == MAT_C_STRUCT) // structure
     {
-        // struct_data = MatData::make_struct();
         
-        bool ret = make_struct_matdata(mat_var, matdata);
+        bool make_struct_ok = make_struct_matdata(mat_var, matdata);
+
+        make_struct_ok ? : err++;
 
     }
     else if(mat_var->class_type == MAT_C_DOUBLE || mat_var->class_type == MAT_C_CHAR) // equivalent of the MatData "scalar" types
     {
         
-        bool ret = make_scalar_matdata(mat_var, matdata);
+        bool make_scalar_ok = make_scalar_matdata(mat_var, matdata);
 
-        std::cout << "You are at the lowest layer!" << std::endl;
+        make_scalar_ok ? : err++;
 
     }
     else
@@ -777,13 +780,11 @@ bool make_matdata(const matvar_t* mat_var, MatData& matdata)
 
         err++;
 
-        return 0 == err; 
-
     }
 
     return 0 == err;
 
-}
+} // Calls the right MatData assembly method based on the input data type
 
 bool MatioBackend::read_container(const char* var_name, MatData& matdata)
 {
@@ -823,10 +824,13 @@ bool MatioBackend::read_container(const char* var_name, MatData& matdata)
         return 0 == err;
     }
 
-    make_matdata(mat_var, matdata); // parse mat_var into matdata (navigating recursively into the variable, from the outer shell towards the base data layer)
+    bool make_matdata_ok = make_matdata(mat_var, matdata); // parse mat_var into matdata (navigating recursively into the variable, from the outer shell towards the base data layer)
+
+    make_matdata_ok ? : err++;
 
     Mat_VarFree(mat_var); // frees all the memory used by the MatIO variable
 
     return err == 0;
 
-}
+} // Based on the input var_name, read the variable from the loaded at file and
+//  Builds recursively the associated MatData object.
