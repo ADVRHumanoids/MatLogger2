@@ -55,7 +55,7 @@ include_directories(
 )
 
 # Adding subdirectories to the build
-set(MATIO_SHARED OFF)
+set(MATIO_SHARED OFF) # compile matio as a static library
 add_subdirectory(matio/) # matio backend library
 
 if(COMPILE_PY_BINDINGS)
