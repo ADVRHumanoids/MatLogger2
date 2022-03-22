@@ -329,7 +329,6 @@ bool MatioBackend::write(const char* var_name, const double* data, int rows, int
     
 }
 
-
 bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int& slices)
 {
     

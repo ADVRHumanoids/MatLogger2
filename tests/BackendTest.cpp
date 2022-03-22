@@ -249,7 +249,8 @@ TEST_F(BackendTest, read_variables)
 
     std::vector<std::string> var_names;
     std::vector<Eigen::MatrixXd> Mat;
-    XBot::matlogger2::MatData read_var;
+    XBot::matlogger2::MatData read_var1;
+    XBot::matlogger2::MatData read_var2;
 
     std::string mat_path = "/tmp/write_test.mat";
 
@@ -291,12 +292,17 @@ TEST_F(BackendTest, read_variables)
     
     std::cout << "--- Struct/Cell variable reading test ---" << std::endl;
 
-    bool is_varread_ok = _backend->read_container("structure", read_var);
+    bool is_varread1_ok = _backend->read_container("structure", read_var1);
 
-    std::cout << "struct read ok:" << is_varread_ok << std::endl;
-    read_var.print();
+    std::cout << "struct read ok:" << is_varread1_ok << std::endl;
 
-    _backend->write_container("struct_copy", read_var);
+    _backend->write_container("struct_copy", read_var1);
+
+    bool is_varread2_ok = _backend->read_container("cell", read_var2);
+
+    std::cout << "cell read ok:" << is_varread2_ok << std::endl;
+    
+    _backend->write_container("cell_copy", read_var2);
 
     _backend->close();
 }
