@@ -702,7 +702,7 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
         {
 
             std::u16string original_string;
-            original_string = (char16_t*) scalar_mat_var->data; // cast data to char16_t*
+            original_string.assign((char16_t*) scalar_mat_var->data, scalar_mat_var->dims[1]); // cast data to char16_t*
             
             text = utf16_utf8(original_string); // convert from utf16 to utf8
 

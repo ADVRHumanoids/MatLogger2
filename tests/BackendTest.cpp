@@ -324,7 +324,7 @@ TEST_F(BackendTest, read_cell_struct_variables)
 
     bool is_varread1_ok = _backend->read_container("structure", read_var1);
 
-    std::cout << "struct read ok:" << is_varread1_ok << std::endl;
+    std::cout << "\n struct read ok:" << is_varread1_ok << std::endl;
 
     read_var1.print();
 
@@ -332,7 +332,7 @@ TEST_F(BackendTest, read_cell_struct_variables)
 
     bool is_varread2_ok = _backend->read_container("cell", read_var2);
 
-    std::cout << "cell read ok:" << is_varread2_ok << std::endl;
+    std::cout << "\ncell read ok:" << is_varread2_ok << std::endl;
     
     // _backend->write_container("cell_copy", read_var2); // works, but memory leak (Conditional jump or move depends on uninitialised value)
 
