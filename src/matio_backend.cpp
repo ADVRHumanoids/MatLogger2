@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <locale> 
+#include <codecvt> 
+
 #include <Eigen/Dense>
 
 inline bool file_exists(const std::string& name) 
@@ -14,11 +17,39 @@ inline bool file_exists(const std::string& name)
 
 using namespace XBot::matlogger2;
 
-
 extern "C" MATL2_API Backend * create_instance()
 {
     return new MatioBackend;
 }
+
+//////////////// UTF-8 <--> UTF-16 conversion utilities ///////////////////
+
+namespace{
+
+    std::u16string utf8_utf16(std::string source); // forward declaration
+    std::string utf16_utf8(std::u16string source);
+    
+    std::u16string utf8_utf16(std::string source)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert; 
+
+        std::u16string dest = convert.from_bytes(source);
+
+        return dest;
+    }
+
+    std::string utf16_utf8(std::u16string source)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert; 
+
+        std::string dest = convert.to_bytes(source);
+
+        return dest;
+    }
+
+}
+
+//////////////////////////////////////////////////////
 
 bool MatioBackend::init(std::string logger_name, 
                         bool enable_compression)
@@ -478,7 +509,7 @@ struct create_matvar_visitor : boost::static_visitor< matvar_t* >
         dims[0] = 1;
         dims[1] = text.size();
 
-        auto * mat_var = Mat_VarCreate(_name.c_str(),
+        matvar_t* mat_var = Mat_VarCreate(_name.c_str(),
                                        MAT_C_CHAR,
                                        MAT_T_UTF8,
                                        mat_rank,
@@ -634,10 +665,11 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
 {
     int err = 0;
 
-    if (scalar_mat_var->class_type == MAT_C_DOUBLE) // double (matrix or single value)
+    // double (matrix or single value)
+    if (scalar_mat_var->class_type == MAT_C_DOUBLE) 
     {
         
-        typedef Eigen::Map<Eigen::MatrixXd> EigenMap;
+        typedef Eigen::Map<Eigen::MatrixXd> EigenMap; // maps raw data to Eigen double matrix
 
         int rows = scalar_mat_var->dims[0];
         int cols = scalar_mat_var->dims[1];
@@ -647,12 +679,13 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
         matdata = EigenMap((double*) scalar_mat_var->data, rows, cols * slices); // mapping variable data to an Eigen Matrix
 
     }
-    else if(scalar_mat_var->class_type == MAT_C_CHAR) // character array
+    // character array
+    else if(scalar_mat_var->class_type == MAT_C_CHAR) 
     {
         if (scalar_mat_var->dims[0] != 1) 
         {
 
-            fprintf(stderr, "MatioBackend::make_scalar_matdata: array of chars not supported yet.\n");
+            fprintf(stderr, "MatioBackend::make_scalar_matdata: text arrays are not supported yet.\n");
 
             err++;
 
@@ -660,16 +693,39 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
             
         }
         
-        std::string strng;
+        std::string text;
 
-        strng.assign( (char*) scalar_mat_var->data, scalar_mat_var->dims[1]);
+        // Checking MatIO data type
+    
+        if ((scalar_mat_var->data_type == MAT_T_UTF16 || scalar_mat_var->data_type == MAT_T_UINT16)) 
+        // conversion from utf16 to utf8 necessary because MatIO seems to assign MAT_T_UINT16 upon variable reading.
+        {
 
-        matdata = strng;
+            std::u16string original_string;
+            original_string = (char16_t*) scalar_mat_var->data; // cast data to char16_t*
+            
+            text = utf16_utf8(original_string); // convert from utf16 to utf8
+
+        }
+        else if (scalar_mat_var->data_type == MAT_T_UTF8) // UTF8 --> simple cast to char8_t*
+        {
+            text = (char*) scalar_mat_var->data;
+        }
+        else{ 
+
+            fprintf(stderr, "MatioBackend::make_scalar_matdata: Unexpected MatIO data type %d. This may produce unpredictable results.\n", scalar_mat_var->data_type);
+
+            err++;
+
+        }
+
+        matdata = text; 
         
     }
     else
     {
-        fprintf(stderr, "MatioBackend::make_scalar_matdata: The provided data has (yet) unsupported MatIO type %d. \n", scalar_mat_var->class_type);
+
+        fprintf(stderr, "MatioBackend::make_scalar_matdata: The provided data has (yet) unsupported MatIO class type %d. \n", scalar_mat_var->class_type);
 
         err++;
 

@@ -49,14 +49,14 @@ protected:
      
 };
 
-TEST_F(BackendTest, write_mat_test)
+TEST_F(BackendTest, write_standard_mat_test)
 {
 
     std::unique_ptr<XBot::matlogger2::Backend> _backend;
     std::vector<std::string> var_names;
     std::vector<Eigen::MatrixXd> Mat;
 
-    std::string mat_path = "/tmp/write_test.mat";
+    std::string mat_path = "/tmp/write_test1.mat";
 
     _backend = XBot::matlogger2::Backend::MakeInstance("matio");
 
@@ -136,31 +136,6 @@ TEST_F(BackendTest, write_mat_test)
         }
     }
 
-    // Creating a structure
-    auto struct_data = XBot::matlogger2::MatData::make_struct();
-    struct_data["field_1"] = XBot::matlogger2::MatData::make_cell(3);
-    struct_data["field_2"] = new_var2;
-    struct_data["field_3"] = XBot::matlogger2::MatData::make_struct();
-
-    struct_data["field_1"].asCell() = {1.0,
-            "ci\nao",
-            Eigen::MatrixXd::Identity(2,5)};
-    
-    struct_data["field_3"]["subfield_1"] = 1;
-    struct_data["field_3"]["subfield_2"] = 2.0;
-    struct_data["field_3"]["subfield_3"] = 3.0;
-    struct_data["field_3"]["subfield_4"] = 4.0;
-
-    // Creating a cell
-
-    int cell_size = 3;
-    auto cell_data = XBot::matlogger2::MatData::make_cell(cell_size);
-
-    cell_data[0] = Eigen::Vector2d::Random();
-    cell_data[1] = Eigen::Vector3d::Random();
-    cell_data[2] = "prova";
-
-
     double time;
 
     // Writing 2D matrix to file
@@ -227,32 +202,70 @@ TEST_F(BackendTest, write_mat_test)
 
     std::cout << "Written variable " << new_var_name4 << " (" << bytes4 * 1e-6 << " MB)" << " in " << time << " s" << std::endl;
 
-    std::vector<std::string> matdata_varnames(2);
-    matdata_varnames[0] = "structure";
-    matdata_varnames[1] = "cell";
+    _backend->close();
+
+}
+
+TEST_F(BackendTest, write_cell_struct_mat_test)
+{
+
+    std::unique_ptr<XBot::matlogger2::Backend> _backend;
+    std::vector<std::string> var_names;
+    std::vector<Eigen::MatrixXd> Mat;
+
+    std::string mat_path = "/tmp/write_test2.mat";
+
+    _backend = XBot::matlogger2::Backend::MakeInstance("matio");
+
+    bool is_backend_ok = _backend->init(mat_path, false);
+
+    // Creating a structure
+    auto struct_data = XBot::matlogger2::MatData::make_struct();
+    struct_data["field_1"] = XBot::matlogger2::MatData::make_cell(3);
+    struct_data["field_2"] = Eigen::Vector4d::Random();
+    struct_data["field_3"] = XBot::matlogger2::MatData::make_struct();
+
+    struct_data["field_1"].asCell() = {1.0,
+            "ci\nao",
+            Eigen::MatrixXd::Identity(2,5)};
+    
+    struct_data["field_3"]["subfield_1"] = 1;
+    struct_data["field_3"]["subfield_2"] = 2.0;
+    struct_data["field_3"]["subfield_3"] = 3.0;
+    struct_data["field_3"]["subfield_4"] = 4.0;
+
+    // Creating a cell
+
+    int cell_size = 3;
+    auto cell_data = XBot::matlogger2::MatData::make_cell(cell_size);
+
+    cell_data[0] = Eigen::Vector2d::Random();
+    cell_data[1] = Eigen::Vector3d::Random();
+    cell_data[2] = "test";
 
     // Writing structure to file
-    _backend->write_container("structure", struct_data);
+    bool write_container1_ok = _backend->write_container("structure", struct_data);
 
     // Writing cell to file 
-    _backend->write_container("cell", cell_data);
+    bool write_container2_ok = _backend->write_container("cell", cell_data);
+
+    std::cout << "struct write ok:" << write_container1_ok << std::endl;
+
+    std::cout << "cell write ok:" << write_container2_ok << std::endl;
 
     _backend->close();
 
 }
 
-TEST_F(BackendTest, read_variables)
+TEST_F(BackendTest, read_standard_variables)
 {
     std::unique_ptr<XBot::matlogger2::Backend> _backend;
 
     typedef Eigen::Map<Eigen::MatrixXd, 0> EigenMap;
 
     std::vector<std::string> var_names;
-    std::vector<Eigen::MatrixXd> Mat;
-    XBot::matlogger2::MatData read_var1;
-    XBot::matlogger2::MatData read_var2;
 
-    std::string mat_path = "/tmp/write_test.mat";
+    std::string mat_path = "/tmp/write_test1.mat";
 
     _backend = XBot::matlogger2::Backend::MakeInstance("matio");
 
@@ -271,30 +284,49 @@ TEST_F(BackendTest, read_variables)
     std::cout << "--- Standard variable reading test ---" << std::endl;
 
     int j = 0;
-    for (int i = 0; i < n_vars; ++i) // printing info on all variables
+    for (int j = 0; j < n_vars; ++j) // printing info on all variables
     {   
-        j = i;
-        if ((var_names[j] != "structure") && (var_names[j] != "cell")){ // use the standard readvar method
 
-            bool is_varread_ok = _backend->readvar(var_names[j].c_str(), mat_data[j], slices[j]);
-            rows[j] = mat_data[j].rows();
-            cols[j] = mat_data[j].cols()/slices[j]; // actual number of columns per slice
+        bool is_varread_ok = _backend->readvar(var_names[j].c_str(), mat_data[j], slices[j]);
+        rows[j] = mat_data[j].rows();
+        cols[j] = mat_data[j].cols()/slices[j]; // actual number of columns per slice
 
-            std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
-            std::cout << "Variable: " << var_names[j] << "\n" << "dim: " << "("<< rows[j] << ", " << cols[j] << ", " << slices[j] << ")"<< std::endl; 
-            
-            std::cout << "data: " << mat_data[j] << std::endl;
-
-        }
+        std::cout << "Var. read ok (1 -> ok): " << is_varread_ok << std::endl;
+        std::cout << "Variable: " << var_names[j] << "\n" << "dim: " << "("<< rows[j] << ", " << cols[j] << ", " << slices[j] << ")"<< std::endl; 
         
+        std::cout << "data: " << mat_data[j] << std::endl;
             
     }
     
+    _backend->close();
+}
+
+TEST_F(BackendTest, read_cell_struct_variables)
+{
+
+    std::string mat_path = "/tmp/write_test2.mat";
+
+    std::unique_ptr<XBot::matlogger2::Backend> _backend;
+
+    _backend = XBot::matlogger2::Backend::MakeInstance("matio");
+
+    bool is_backend_ok = _backend->load(mat_path, true);
+
+
+    std::vector<std::string> var_names;
+    bool are_varnames_ok = _backend->get_var_names(var_names);
+    int n_vars = var_names.size();
+
+    XBot::matlogger2::MatData read_var1;
+    XBot::matlogger2::MatData read_var2;
+
     std::cout << "--- Struct/Cell variable reading test ---" << std::endl;
 
     bool is_varread1_ok = _backend->read_container("structure", read_var1);
 
     std::cout << "struct read ok:" << is_varread1_ok << std::endl;
+
+    read_var1.print();
 
     // _backend->write_container("struct_copy", read_var1); // works, but memory leak (Conditional jump or move depends on uninitialised value)
 
@@ -303,6 +335,8 @@ TEST_F(BackendTest, read_variables)
     std::cout << "cell read ok:" << is_varread2_ok << std::endl;
     
     // _backend->write_container("cell_copy", read_var2); // works, but memory leak (Conditional jump or move depends on uninitialised value)
+
+    read_var2.print();
 
     _backend->close();
 }
