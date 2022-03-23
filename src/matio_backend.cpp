@@ -698,7 +698,8 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
         // Checking MatIO data type
     
         if ((scalar_mat_var->data_type == MAT_T_UTF16 || scalar_mat_var->data_type == MAT_T_UINT16)) 
-        // conversion from utf16 to utf8 necessary because MatIO seems to assign MAT_T_UINT16 upon variable reading.
+        // conversion from utf16 to utf8 necessary because MatIO converts MAT_T_UTF8 to MAT_T_UINT16 internally 
+        // when writing to file to allow compatibility with Matlab.
         {
 
             std::u16string original_string;
@@ -709,7 +710,7 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
         }
         else if (scalar_mat_var->data_type == MAT_T_UTF8) // UTF8 --> simple cast to char8_t*
         {
-            text = (char*) scalar_mat_var->data;
+            text = text.assign((char*) scalar_mat_var->data, scalar_mat_var->dims[1]);
         }
         else{ 
 

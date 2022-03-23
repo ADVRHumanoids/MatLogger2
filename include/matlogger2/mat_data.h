@@ -43,7 +43,7 @@ public:
             - std::string
             - Eigen::MatrixXd
     */
-    template <typename T = double> // default template typename double
+    template <typename T = double> 
     MatData(const T& value);
 
     /* Copy constructor (deep copy) */
