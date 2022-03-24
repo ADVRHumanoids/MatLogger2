@@ -71,7 +71,7 @@ bool MatioBackend::init(std::string logger_name,
 
     _mat_file = Mat_CreateVer(logger_name.c_str(), 
                               nullptr, 
-                              MAT_FT_MAT73);
+                              MAT_FT_MAT73); // by default, save to mat 7.3 version
     
     if ( _mat_file == NULL ) { // check if mat file object is empty
 
@@ -700,6 +700,8 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
         if ((scalar_mat_var->data_type == MAT_T_UTF16 || scalar_mat_var->data_type == MAT_T_UINT16)) 
         // conversion from utf16 to utf8 necessary because MatIO converts MAT_T_UTF8 to MAT_T_UINT16 internally 
         // when writing to file to allow compatibility with Matlab.
+        // In particular, there is no UTF-8 support for character arrays saved by the -v7.3 option in MATLAB. If the file is created using 
+        // the MAT_FT_MAT5 option in MatIO the character array is not converted to UINT16 but kept as UTF-8.
         {
 
             std::u16string original_string;
