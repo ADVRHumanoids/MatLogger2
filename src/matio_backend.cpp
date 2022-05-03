@@ -424,6 +424,17 @@ bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int&
         return 0 == err;
     }
 
+    if ( mat_var->class_type != MAT_C_DOUBLE) {
+
+        fprintf(stderr, "MatioBackend::readvar: This method is only for reading standard numeric variables. \n");
+        
+        err++;
+
+        Mat_VarFree(mat_var);
+
+        return 0 == err;
+    }
+
     // int data_size = mat_var->data_size;
     // memmove(*data, const void* mat_var->data, data_size * mat_var->dims[0] * mat_var->dims[1]); // copying data field to memory pointed by the output data pointer to avoid losing data upon variable deletion
     
