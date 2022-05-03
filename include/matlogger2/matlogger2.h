@@ -22,7 +22,7 @@ namespace XBot
 
     /**
     * @brief The MatLogger2 class allows the user to save numeric variables
-    * (scalars, vectors, matrices) to HDF5 MAT-files. 
+    * (scalars, vectors, matrices), structures and cell arrays to HDF5 MAT-files. 
     * 
     * Output formatting: 
     *  - scalars are appended to form a column vector
@@ -35,8 +35,8 @@ namespace XBot
     * e.g. MatLogger2(std::string filename).
     * 
     * Usage: 
-    * variables are created via the create() method. 
-    * Elements are added to a variable with the add() method. 
+    * Standard numeric variables(scalars, vectors and matrices) are created via the create() method. 
+    * Standard numeric elements are added to a variable with the add() method, while structures and arrays with the create() one. 
     * Different overloads are provided for Eigen3 types, std::vector,
     * and scalars. 
     * Such elements are stored inside an internal buffer, which can be flushed 
@@ -78,6 +78,7 @@ namespace XBot
         struct MATL2_API Options
         {
             bool enable_compression;
+            bool load_file_from_path; // option to load an already existing mat file, instead of creating it
             int default_buffer_size;
             int default_buffer_size_max_bytes;
             

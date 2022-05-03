@@ -94,11 +94,15 @@ MatLogger2::MatLogger2(std::string file, Options opt):
     // get the file extension, or empty string if there is none
     std::string extension = get_file_extension(file);
     
-    if(extension == "") // no extension, append date/time + .mat
+    if(extension == "" && !_opt.load_file_from_path) // no extension and load mode disabled, append date/time + .mat
     {
         static int counter = 0;
         _file_name += "__" + std::to_string(counter++) + "_" +
                       date_time_as_string() + ".mat";
+    }
+    else if(extension == "" && _opt.load_file_from_path) // no extension and load mode enabled, simply append .mat extension
+    {
+        _file_name += ".mat";
     }
     else if(extension != "mat") // extension different from .mat, error
     {
@@ -113,11 +117,23 @@ extension, or no extension at all");
     {
         throw std::runtime_error("MatLogger2: unable to create backend");
     }
-    
-    if(!_backend->init(_file_name, _opt.enable_compression))
+
+    if (_opt.load_file_from_path) // try to load an already existing file
     {
-        throw std::runtime_error("MatLogger2: unable to initialize backend");
+        bool enable_write_access = true; // enable modification to the file
+        if(!_backend->load(_file_name, enable_write_access))
+        {
+            throw std::runtime_error("MatLogger2: failed to load mat file.\n  Check the correctness of the provided path and of the file name.");
+        }
     }
+    else // if no Options is provided, by default create a new file
+    {
+        if(!_backend->init(_file_name, _opt.enable_compression)) // init method will create a new mat file and will erase any preexisting one
+        {
+            throw std::runtime_error("MatLogger2: unable to initialize backend");
+        }
+    }
+    
 }
 
 const std::string& MatLogger2::get_filename() const
