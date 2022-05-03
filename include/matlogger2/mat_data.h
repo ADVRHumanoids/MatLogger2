@@ -20,7 +20,7 @@ namespace detail {
     class MatDataBase;
 }
 
-class MATL2_API MatScalarType;
+class MATL2_API MatScalarType; // forward declaration
 
 /**
  * @brief The MatData class incapsulates a MATLAB-style variable
@@ -51,8 +51,8 @@ public:
     MatData(MatData&& other) = default; // default move constructor
 
     /* Copy assignment (deep copy) */
-    MatData& operator = (const MatData& rhs); // rhs -> right hand side
-    MatData& operator = (MatData&& rhs) = default;
+    MatData& operator= (const MatData& rhs); // rhs -> right hand side
+    MatData& operator= (MatData&& rhs) = default;
 
     /* Factories for struct and cell types (for scalar, use constructor) */
     static MatData make_struct();
@@ -73,12 +73,12 @@ public:
     const std::vector<MatData>& asCell() const;
 
     /* Direct access to cell elements */
-    MatData& operator [] (int i);
-    const MatData& operator [] (int i) const;
+    MatData& operator[] (int i);
+    const MatData& operator[] (int i) const;
 
     /* Direct access to struct elements */
-    MatData& operator [] (const std::string& key);
-    const MatData& operator [] (const std::string& key) const;
+    MatData& operator[] (const std::string& key);
+    const MatData& operator[] (const std::string& key) const;
 
     /* Print to ostream object */
     void print(std::ostream& os = std::cout) const;

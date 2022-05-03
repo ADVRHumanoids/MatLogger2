@@ -28,18 +28,14 @@ link_directories(${GTEST_LIB_DIRS})
 
 add_executable(TestApi TestApi.cpp)
 add_executable(ProfileTest profile_test.cpp)
-add_executable(WriteTest WriteTest.cpp)
 add_executable(BackendTest BackendTest.cpp)
 
 target_link_libraries(TestApi ${TestLibs}) # -fsanitize=thread)
 target_link_libraries(ProfileTest matlogger2 -lpthread)
-target_link_libraries(WriteTest ${TestLibs}) # -fsanitize=thread)
 target_link_libraries(BackendTest ${TestLibs} ) # -fsanitize=thread)
 
 add_dependencies(TestApi ${GTEST_EXT_TARGET} matlogger2)
-add_dependencies(WriteTest ${GTEST_EXT_TARGET} matlogger2)
 add_dependencies(BackendTest ${GTEST_EXT_TARGET} matlogger2)
 
 add_test(NAME TestApi COMMAND TestApi)
-add_test(NAME WriteTest COMMAND WriteTest)
 add_test(NAME BackendTest COMMAND BackendTest)
