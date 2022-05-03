@@ -17,6 +17,7 @@ set(LIBRARY_TARGET_NAME matlogger2) # set library name
 set(${LIBRARY_TARGET_NAME}_SRC 
         src/matlogger2.cpp
         src/mat_appender.cpp
+        src/mat_reader.cpp
         src/matlogger2_backend.cpp
         src/var_buffer.cpp
         src/mat_data.cpp
