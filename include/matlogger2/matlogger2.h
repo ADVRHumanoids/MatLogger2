@@ -77,8 +77,8 @@ namespace XBot
         
         struct MATL2_API Options
         {
-            bool enable_compression;
-            bool load_file_from_path; // option to load an already existing mat file, instead of creating it
+            bool enable_compression = false;
+            bool load_file_from_path = false; // option to load an already existing mat file, instead of creating it
             int default_buffer_size;
             int default_buffer_size_max_bytes;
             
@@ -162,6 +162,16 @@ namespace XBot
         bool save(const std::string& var_name,
                   matlogger2::MatData&& var_data);
         
+        bool readvar(const std::string& var_name, 
+                     Eigen::MatrixXd& mat_data,
+                     int& slices);
+
+        bool read_container(const std::string& var_name, matlogger2::MatData& matdata);
+
+        bool delvar(const std::string& var_name);
+
+        bool get_mat_var_names(std::vector<std::string>& var_names);
+
         /**
         * @brief Flush available data to disk.
         * 

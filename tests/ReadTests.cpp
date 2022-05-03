@@ -86,8 +86,6 @@ TEST_F(ReadTests, dump_sample_file)
     struct_data["field_3"]["subfield_3"] = 3.0;
     struct_data["field_3"]["subfield_4"] = 4.0;
 
-    struct_data.print();
-
     auto struct_data_cpy = struct_data;
 
     struct_data_cpy["field_2"].value().as<Eigen::MatrixXd>() = Eigen::Matrix3d::Random();
@@ -100,16 +98,23 @@ TEST_F(ReadTests, dump_sample_file)
 
     std::string mat_path = "/tmp/readExample.mat";
 
+    // XBot::MatLogger2::Options opts;
+    // opts.load_file_from_path = false;
+
     auto logger = XBot::MatLogger2::MakeLogger(mat_path);
     logger->save("mvar", struct_data);
     logger->save("cellvar", cell_data);
     logger->add("matrix", matrix);
 
+    for (int i = 0; i < 5; i++)
+    {
+        logger->add("block_matrix", matrix);
+    } 
     logger.reset();
 
 }
 
-TEST_F(ReadTests, read_and_modify)
+TEST_F(ReadTests, load_and_modify)
 {
     XBot::MatLogger2::Options opts;
     opts.load_file_from_path = true;
@@ -135,7 +140,77 @@ TEST_F(ReadTests, read_and_modify)
     }
 
     logger->add("new_matrix", matrix);
+    logger->add("new_matrix_copy", matrix);
 
+    logger.reset();
+
+}
+
+TEST_F(ReadTests, read_var_names)
+{
+    XBot::MatLogger2::Options opts;
+    opts.load_file_from_path = true;
+
+    std::string mat_path = "/tmp/readExample.mat";
+
+    auto logger = XBot::MatLogger2::MakeLogger(mat_path, opts);
+
+    std::vector<std::string> var_names;
+
+    logger->get_mat_var_names(var_names);
+
+    int n_vars = var_names.size();
+
+    logger.reset();
+
+    int j = 0;
+    for (int j = 0; j < n_vars; ++j) // printing info on all variables
+    {   
+
+        std::cout << "Variable: " << var_names[j] << "\n"; 
+                
+    }
+}
+
+TEST_F(ReadTests, delete_var)
+{
+    XBot::MatLogger2::Options opts;
+    opts.load_file_from_path = true;
+
+    std::string mat_path = "/tmp/readExample.mat";
+
+    auto logger = XBot::MatLogger2::MakeLogger(mat_path, opts);
+
+    logger->delvar("new_matrix_copy");
+
+    logger.reset();
+
+}
+
+TEST_F(ReadTests, read_var_names2)
+{
+    XBot::MatLogger2::Options opts;
+    opts.load_file_from_path = true;
+
+    std::string mat_path = "/tmp/readExample.mat";
+
+    auto logger = XBot::MatLogger2::MakeLogger(mat_path, opts);
+
+    std::vector<std::string> var_names;
+
+    logger->get_mat_var_names(var_names);
+
+    int n_vars = var_names.size();
+
+    logger.reset();
+
+    int j = 0;
+    for (int j = 0; j < n_vars; ++j) // printing info on all variables
+    {   
+
+        std::cout << "Variable: " << var_names[j] << "\n"; 
+                
+    }
 }
 
 TEST_F(ReadTests, read_and_print)
@@ -147,7 +222,33 @@ TEST_F(ReadTests, read_and_print)
 
     auto logger = XBot::MatLogger2::MakeLogger(mat_path, opts);
 
+    Eigen::MatrixXd read_matrix;
+    int slices;
+
+    logger->readvar("new_matrix", read_matrix, slices);
+    
+    std::cout << "read matrix: " << read_matrix << std::endl;
+    std::cout << "n. slices: " << slices << std::endl;
+    
+    logger->readvar("block_matrix", read_matrix, slices);
+    
+    std::cout << "read block matrix: " << read_matrix << std::endl;
+    std::cout << "n. slices: " << slices << std::endl;
+    
+    XBot::matlogger2::MatData matdata;
+    logger->read_container("cellvar", matdata);
+
+    matdata.print();
+
+    logger->read_container("mvar", matdata);
+
+    matdata.print();
+
+    logger.reset();
+
 }
+
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -253,6 +253,38 @@ bool MatLogger2::save(const std::string & var_name, MatData && var_data)
    return true;
 }
 
+bool MatLogger2::readvar(const std::string& var_name, 
+                         Eigen::MatrixXd& mat_data,
+                         int& slices)
+{
+
+    bool var_read_ok  = _backend->readvar(var_name.c_str(), mat_data, slices);
+
+    return var_read_ok;
+
+}
+
+bool MatLogger2::read_container(const std::string& var_name,
+                    matlogger2::MatData& matdata)
+{
+    bool var_read_ok  = _backend->read_container(var_name.c_str(), matdata);
+
+    return var_read_ok;
+}
+
+bool MatLogger2::delvar(const std::string& var_name)
+{
+    bool var_del_ok = _backend->delvar(var_name.c_str());
+
+    return var_del_ok;
+}
+
+bool MatLogger2::get_mat_var_names(std::vector<std::string>& var_names)
+{   
+    bool get_var_names_ok = _backend->get_var_names(var_names);
+
+    return get_var_names_ok;
+}
 
 int MatLogger2::flush_available_data()
 {
