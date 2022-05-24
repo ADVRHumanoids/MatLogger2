@@ -1,4 +1,0 @@
-#ifndef __XBOT_MATLOGGER2_READER_H__
-#define __XBOT_MATLOGGER2_READER_H__
-
-#endif

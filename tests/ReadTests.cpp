@@ -9,7 +9,6 @@
 #include <boost/variant.hpp>
 
 #include "matlogger2/matlogger2.h"
-#include "matlogger2/utils/mat_reader.h"
 #include "matlogger2/mat_data.h"
 
 // For some basic documentation on Googletest see https://google.github.io/googletest/primer.html
