@@ -102,9 +102,14 @@ target_compile_definitions(${LIBRARY_TARGET_NAME} PRIVATE -DMATLOGGER2_LIB_EXT="
 
 # Target include directories
 
+#target_include_directories(${LIBRARY_TARGET_NAME} INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+#                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
+#                                                           ${EIGEN3_INCLUDE_DIR})
+                                                            
 target_include_directories(${LIBRARY_TARGET_NAME} INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                                                             "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
-                                                            ${EIGEN3_INCLUDE_DIR})
+                                                            "${EIGEN3_INCLUDE_DIR}")                                                            
+                                                            
                                                      
 # Including cmake files
 
