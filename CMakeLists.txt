@@ -41,7 +41,7 @@ option(GEN_DOCS "Generate docs" TRUE)
 option(BUILD_TESTS "Compile ${PROJECT_NAME} tests" FALSE)
 option(ENABLE_XENO "Compile and install matlogger2-xeno target" FALSE)
 
-# Adding include directories
+# Adding include directories to ALL targets
 
 include_directories(
     include/
@@ -55,8 +55,8 @@ include_directories(
 )
 
 # Adding subdirectories to the build
-set(MATIO_SHARED OFF) # compile matio as a static library
 add_subdirectory(matio/) # matio backend library
+set(MATIO_SHARED OFF) # compile matio as a static library
 
 if(COMPILE_PY_BINDINGS)
   add_subdirectory(bindings/python/) # python bindings
@@ -106,11 +106,9 @@ target_compile_definitions(${LIBRARY_TARGET_NAME} PRIVATE -DMATLOGGER2_LIB_EXT="
 #                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
 #                                                           ${EIGEN3_INCLUDE_DIR})
                                                             
-target_include_directories(${LIBRARY_TARGET_NAME} INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
-                                                            "${EIGEN3_INCLUDE_DIR}")                                                            
-                                                            
-                                                     
+target_include_directories(${LIBRARY_TARGET_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                                                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")                                                            
+                                                                                                              
 # Including cmake files
 
 include(InstallBasicPackageFiles) # helper module to make the package easier to be found by other projects
