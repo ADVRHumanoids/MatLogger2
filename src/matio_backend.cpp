@@ -448,7 +448,7 @@ bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int&
 
     slices = rank != 3 ? 1 : mat_var->dims[2];
 
-    mat_data = EigenMap((double*) mat_var->data, rows, cols * (slices)); // mapping variable data to an Eigen Matrix
+    mat_data = EigenMap((double*) mat_var->data, rows, cols * (slices)); // mapping variable data to an Eigen Matrix (slices are appended along the second dimension)
 
     Mat_VarFree(mat_var); // free all the memory allocated for the variable
 

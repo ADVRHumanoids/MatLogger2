@@ -272,10 +272,12 @@ TEST_F(ReadTests, read_and_print)
     ASSERT_TRUE(logger->read_container(this->cell_data_name, struct_data));
     std::cout << "\n" << "read " << this->cell_data_name.c_str() << ": " << std::endl;
     struct_data.print();
+    // add check for structure data 
 
     ASSERT_TRUE(logger->read_container(this->struct_data_name, cell_data));
     std::cout << "\n" << "read structure: " << std::endl;
     cell_data.print();
+    // add check for cell data
 
     logger.reset();
 
