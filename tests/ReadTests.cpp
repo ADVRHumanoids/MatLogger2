@@ -269,20 +269,42 @@ TEST_F(ReadTests, read_and_print)
     ASSERT_TRUE(block_matrix.isApprox(this->block_matrix_check));
 
     XBot::matlogger2::MatData struct_data, cell_data;
-    ASSERT_TRUE(logger->read_container(this->cell_data_name, struct_data));
-    std::cout << "\n" << "read " << this->cell_data_name.c_str() << ": " << std::endl;
-    struct_data.print();
-    // add check for structure data 
 
-    ASSERT_TRUE(logger->read_container(this->struct_data_name, cell_data));
-    std::cout << "\n" << "read structure: " << std::endl;
+    ASSERT_TRUE(logger->read_container(this->struct_data_name, struct_data));
+    std::cout << "\n" << "read " << this->struct_data_name.c_str() << ": " << std::endl;
+    struct_data.print();
+    ASSERT_TRUE(struct_data["field_2"].value().as<Eigen::MatrixXd>().isApprox(this->struct_data["field_2"].value().as<Eigen::MatrixXd>()));
+
+    ASSERT_TRUE(logger->read_container(this->cell_data_name, cell_data));
+    std::cout << "\n" << "read " << this->cell_data_name.c_str() << ": " << std::endl;
     cell_data.print();
-    // add check for cell data
+    // std::cout << "\n" << std::endl;
+    // std::cout << this->cell_data[0].value().as<Eigen::MatrixXd>() << std::endl;
+    // std::cout << "\n" << std::endl;
+    // std::cout << cell_data[0].value().as<Eigen::MatrixXd>() << std::endl;
+    // std::cout << "\n" << std::endl;
+    // ASSERT_TRUE(this->cell_data[0].value().as<Eigen::MatrixXd>().isApprox(cell_data[0].value().as<Eigen::MatrixXd>()));
+    // ASSERT_TRUE(this->cell_data[1] == cell_data[1]);
+    // ASSERT_TRUE(this->cell_data[2] == cell_data[2]);
 
     logger.reset();
 
 }
 
+TEST_F(ReadTests, check_throws)
+{
+    // Checking exceptions with structure data
+    EXPECT_THROW(struct_data["field_1"].value().as<std::string>(), std::exception);
+    EXPECT_THROW(struct_data["field_2"].value().as<double>(), std::exception);
+    EXPECT_THROW(struct_data["field_1"].value().as<double>(), std::exception);
+    EXPECT_THROW(struct_data["field_1"][0].value().as<Eigen::MatrixXd>(), std::exception);
+
+    // Checking exceptions with cell data
+    
+    EXPECT_THROW(cell_data[0].value().as<std::string>(), std::exception);
+    EXPECT_THROW(cell_data[0].value().as<double>(), std::exception);
+
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
