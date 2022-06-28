@@ -238,7 +238,8 @@ bad_type::bad_type(std::string req, std::string actual)
 
 const char* bad_type::what() const noexcept
 {
-    return ("Requested type '" + req + "' does not match the actual type '" + actual + "'").c_str();
+    msg = "Requested type '" + req + "' does not match the actual type '" + actual + "'";
+    return msg.c_str();
 }
 
 }

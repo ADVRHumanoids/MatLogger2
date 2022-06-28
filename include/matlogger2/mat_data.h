@@ -104,6 +104,7 @@ private:
 
     std::string req;
     std::string actual;
+    mutable std::string msg;
 };
 
 class detail::MatDataBase
