@@ -156,7 +156,7 @@ TEST_F(ReadTests, read_var_names)
 
     std::vector<std::string> var_names;
 
-    logger->get_mat_var_names(var_names);
+    ASSERT_TRUE(logger->get_mat_var_names(var_names));
 
     int n_vars = var_names.size();
 
@@ -180,7 +180,7 @@ TEST_F(ReadTests, delete_var)
 
     auto logger = XBot::MatLogger2::MakeLogger(mat_path, opts);
 
-    logger->delvar("new_matrix_copy");
+    ASSERT_TRUE(logger->delvar("new_matrix_copy"));
 
     logger.reset();
 
@@ -197,7 +197,7 @@ TEST_F(ReadTests, read_var_names2)
 
     std::vector<std::string> var_names;
 
-    logger->get_mat_var_names(var_names);
+    ASSERT_TRUE(logger->get_mat_var_names(var_names));
 
     int n_vars = var_names.size();
 
@@ -224,22 +224,22 @@ TEST_F(ReadTests, read_and_print)
     Eigen::MatrixXd read_matrix;
     int slices;
 
-    logger->readvar("new_matrix", read_matrix, slices);
+    ASSERT_TRUE(logger->readvar("new_matrix", read_matrix, slices));
     
     std::cout << "read matrix: " << read_matrix << std::endl;
     std::cout << "n. slices: " << slices << std::endl;
     
-    logger->readvar("block_matrix", read_matrix, slices);
+    ASSERT_TRUE(logger->readvar("block_matrix", read_matrix, slices));
     
     std::cout << "read block matrix: " << read_matrix << std::endl;
     std::cout << "n. slices: " << slices << std::endl;
     
     XBot::matlogger2::MatData matdata;
-    logger->read_container("cellvar", matdata);
+    ASSERT_TRUE(logger->read_container("cellvar", matdata));
 
     matdata.print();
 
-    logger->read_container("mvar", matdata);
+    ASSERT_TRUE(logger->read_container("mvar", matdata));
 
     matdata.print();
 
