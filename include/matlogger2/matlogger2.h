@@ -166,7 +166,7 @@ namespace XBot
                      Eigen::MatrixXd& mat_data,
                      int& slices);
 
-        bool read_container(const std::string& var_name, matlogger2::MatData& matdata);
+        bool read_container(const std::string& var_name, matlogger2::MatData& matdata); // double scalar types are automatically casted to MatrixXd upon reading (MatIO does not distinguish between matrices and scalars)
 
         bool delvar(const std::string& var_name);
 

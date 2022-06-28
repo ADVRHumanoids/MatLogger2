@@ -107,9 +107,19 @@ protected:
         // cell
         int cell_size = 3;
         cell_data = XBot::matlogger2::MatData::make_cell(cell_size);
-        cell_data[0] = Eigen::Vector2d::Random();
-        cell_data[1] = Eigen::Vector3d::Random();
-        cell_data[2] = Eigen::Vector4d::Random();
+        Eigen::Vector2d first_el; 
+        first_el << 1.0, 4.0;
+        Eigen::Vector3d second_el;
+        second_el << 9.0, 1.67, 4.147;
+        Eigen::Vector4d third_el;
+        third_el << 6.7, 1.1245, 8.7665, 343.7;
+
+        cell_data[0] = first_el;
+        cell_data[1] = second_el;
+        cell_data[2] = third_el;
+        // cell_data[0] = Eigen::Vector2d::Random();
+        // cell_data[1] = Eigen::Vector3d::Random();
+        // cell_data[2] = Eigen::Vector4d::Random();
 
     }
 
@@ -273,19 +283,22 @@ TEST_F(ReadTests, read_and_print)
     ASSERT_TRUE(logger->read_container(this->struct_data_name, struct_data));
     std::cout << "\n" << "read " << this->struct_data_name.c_str() << ": " << std::endl;
     struct_data.print();
+    // std::cout << struct_data["field_1"] << std::endl;
+    ASSERT_TRUE(struct_data["field_1"][0].value().as<Eigen::MatrixXd>()(0, 0) == this->struct_data["field_1"][0].value().as<double>()); // upon reading, doubles are converted to MatrixXd (MatIO does not make any difference)
+    ASSERT_TRUE(struct_data["field_1"][1].value().as<std::string>() == this->struct_data["field_1"][1].value().as<std::string>());
+    ASSERT_TRUE(struct_data["field_1"][2].value().as<Eigen::MatrixXd>().isApprox(this->struct_data["field_1"][2].value().as<Eigen::MatrixXd>()));
     ASSERT_TRUE(struct_data["field_2"].value().as<Eigen::MatrixXd>().isApprox(this->struct_data["field_2"].value().as<Eigen::MatrixXd>()));
+    ASSERT_TRUE(struct_data["field_3"]["subfield_1"].value().as<Eigen::MatrixXd>()(0, 0) == this->struct_data["field_3"]["subfield_1"].value().as<double>());
+    ASSERT_TRUE(struct_data["field_3"]["subfield_2"].value().as<Eigen::MatrixXd>()(0, 0) == this->struct_data["field_3"]["subfield_2"].value().as<double>());
+    ASSERT_TRUE(struct_data["field_3"]["subfield_3"].value().as<Eigen::MatrixXd>()(0, 0) == this->struct_data["field_3"]["subfield_3"].value().as<double>());
+    ASSERT_TRUE(struct_data["field_3"]["subfield_4"].value().as<Eigen::MatrixXd>()(0, 0) == this->struct_data["field_3"]["subfield_4"].value().as<double>());
 
     ASSERT_TRUE(logger->read_container(this->cell_data_name, cell_data));
     std::cout << "\n" << "read " << this->cell_data_name.c_str() << ": " << std::endl;
     cell_data.print();
-    // std::cout << "\n" << std::endl;
-    // std::cout << this->cell_data[0].value().as<Eigen::MatrixXd>() << std::endl;
-    // std::cout << "\n" << std::endl;
-    // std::cout << cell_data[0].value().as<Eigen::MatrixXd>() << std::endl;
-    // std::cout << "\n" << std::endl;
-    // ASSERT_TRUE(this->cell_data[0].value().as<Eigen::MatrixXd>().isApprox(cell_data[0].value().as<Eigen::MatrixXd>()));
-    // ASSERT_TRUE(this->cell_data[1] == cell_data[1]);
-    // ASSERT_TRUE(this->cell_data[2] == cell_data[2]);
+    ASSERT_TRUE(this->cell_data[0].value().as<Eigen::MatrixXd>().isApprox(cell_data[0].value().as<Eigen::MatrixXd>()));
+    ASSERT_TRUE(this->cell_data[1].value().as<Eigen::MatrixXd>().isApprox(cell_data[1].value().as<Eigen::MatrixXd>()));
+    ASSERT_TRUE(this->cell_data[2].value().as<Eigen::MatrixXd>().isApprox(cell_data[2].value().as<Eigen::MatrixXd>()));
 
     logger.reset();
 
