@@ -65,10 +65,6 @@ if(GEN_DOCS)
   add_subdirectory(doc/) # docs
 endif()
 
-if(BUILD_TESTS)
-  add_subdirectory(tests) # tests
-endif()
-
 # Adding libraries to the project
 
 add_library(${LIBRARY_TARGET_NAME} SHARED ${${LIBRARY_TARGET_NAME}_SRC})
@@ -120,9 +116,10 @@ if(GEN_DEB)
   include(cmake/generate_deb_pkg.cmake) # generate .deb
 endif()
 
-if(BUILD_TESTS) 
+if(BUILD_TESTS)
   enable_testing()
   add_custom_target(test_verbose ${CMAKE_CTEST_COMMAND} -V)
+  add_subdirectory(tests) # tests
 endif()
 
 # Add the uninstall target
