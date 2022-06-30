@@ -18,10 +18,11 @@ notifications:
     on_failure: never
 
 before_script:
+- rm -rf /opt/pyenv  # damn pyenv
 
 # apt update and core packages installation
 - sudo apt-get update
-- sudo apt-get install git libgtest-dev cmake doxygen curl libeigen3-dev pybind11-dev libboost-all-dev libhdf5-dev
+- sudo apt-get install git libgtest-dev cmake doxygen curl libeigen3-dev pybind11-dev libboost-all-dev libhdf5-dev 
 
 script: 
 - set +e
