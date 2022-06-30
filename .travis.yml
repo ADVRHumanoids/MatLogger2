@@ -1,0 +1,32 @@
+os: linux
+language: cpp
+compiler: g++
+
+jobs:
+  include:
+    - os: linux
+      dist: focal
+    - os: linux
+      dist: bionic
+
+notifications:
+  email:
+    recipients:
+      - arturo.laurenzi@iit.it
+      - andrea.patrizi@iit.it
+    on_success: never
+    on_failure: never
+
+before_script:
+
+# apt update and core packages installation
+- sudo apt-get update
+- sudo apt-get install git libgtest-dev cmake doxygen curl libeigen3-dev pybind11-dev
+
+script: 
+- set +e
+- mkdir build
+- cd build
+- cmake -DBUILD_TESTS=ON ..
+- make
+- ctest --output-on-failure
