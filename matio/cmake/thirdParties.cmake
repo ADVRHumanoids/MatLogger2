@@ -7,7 +7,7 @@ if(MATIO_WITH_HDF5)
         if(MATIO_SHARED)
             set(HDF5_USE_STATIC_LIBRARIES FALSE)
         else()
-            set(HDF5_USE_STATIC_LIBRARIES TRUE)
+            set(HDF5_USE_STATIC_LIBRARIES FALSE)
         endif()
     endif()
 

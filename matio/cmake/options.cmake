@@ -12,7 +12,7 @@ option(MATIO_MAT73 "Enable support for version 7.3 MAT files" ON)
 set(MAT73 ${MATIO_MAT73})
 
 # Option to build static or shared
-option(MATIO_SHARED "Build shared matio library, disable for static library" ON)
+option(MATIO_SHARED "Build shared matio library, disable for static library" OFF)
 
 # Option to enable position-independent code (PIC)
 option(MATIO_PIC "Enable position-independent code (PIC), i.e., compilation with the -fPIC flag" ON)
