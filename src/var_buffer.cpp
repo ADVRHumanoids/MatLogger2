@@ -1,4 +1,4 @@
-#include <matlogger2/utils/var_buffer.h>
+#include "matlogger2/utils/var_buffer.h"
 
 #include "boost/spsc_queue_logger.hpp"
 #include <vector>
@@ -77,7 +77,7 @@ public:
     /**
      * @brief Get a new block from the pool, if available
      * 
-     * @return a shared pointer to a block, or a nullptr if non is available
+     * @return a shared pointer to a block, or a nullptr if none is available
      */
     BufferBlock::Ptr get_new_block()
     {

@@ -2,7 +2,7 @@
 #define __XBOT_MATLOGGER2_APPENDER_H__
 
 #include <memory>
-#include <matlogger2/utils/visibility.h>
+#include "matlogger2/utils/visibility.h"
 
 namespace XBot 
 {

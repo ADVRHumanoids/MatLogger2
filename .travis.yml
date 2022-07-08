@@ -1,0 +1,35 @@
+os: linux
+language: cpp
+compiler: g++
+
+jobs:
+  include:
+    - os: linux
+      dist: focal
+    - os: linux
+      dist: bionic
+
+notifications:
+  email:
+    recipients:
+      - arturo.laurenzi@iit.it
+      - andrea.patrizi@iit.it
+    on_success: never
+    on_failure: always
+
+before_script:
+- rm -rf /opt/pyenv  # damn pyenv
+
+# apt update and core packages installation
+- sudo apt-get update
+- sudo apt-get install git libgtest-dev cmake doxygen curl libeigen3-dev pybind11-dev libboost-all-dev libhdf5-dev lsb-release
+
+script: 
+- set +e
+- mkdir build
+- cd build
+- UBUNTU_MAJOR_FULL=$(lsb_release -rs)
+- if echo "$UBUNTU_MAJOR_FULL" | grep -q "18"; then COMPILE_PYBIND='OFF'; else COMPILE_PYBIND='ON'; fi
+- cmake -DBUILD_TESTS=ON -DCOMPILE_PY_BINDINGS=$COMPILE_PYBIND ..
+- make
+- ctest --output-on-failure
