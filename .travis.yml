@@ -15,7 +15,7 @@ notifications:
       - arturo.laurenzi@iit.it
       - andrea.patrizi@iit.it
     on_success: never
-    on_failure: never
+    on_failure: always
 
 before_script:
 - rm -rf /opt/pyenv  # damn pyenv
