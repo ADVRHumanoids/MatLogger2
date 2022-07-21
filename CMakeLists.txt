@@ -75,7 +75,10 @@ add_library(${MATIO_BACKEND_NAME} SHARED src/matio_backend.cpp)
 
 target_link_libraries(${LIBRARY_TARGET_NAME} PRIVATE dl -pthread)
 
-target_link_libraries(${MATIO_BACKEND_NAME} PRIVATE matio)
+target_link_libraries(${MATIO_BACKEND_NAME}
+    PUBLIC
+    matlogger2
+    PRIVATE matio)
 
 # Adding target compile options
 
