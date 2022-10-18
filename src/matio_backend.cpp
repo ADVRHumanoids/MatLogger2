@@ -265,45 +265,18 @@ bool MatioBackend::write(const char* var_name,
 
     }
 
-    // overwrites user input, in case it was provided
-    // todo: why this? @AndPatr
-    append_dim = n_dims;
-
     int rows_prev = mat_var->dims[0];
     int cols_prev = mat_var->dims[1];
     int rank_prev = mat_var->rank;
 
-    // sanity check
-    if (append_dim != 1 &&
-            append_dim != 2 &&
-            append_dim != 3){ // append_dim not valid
-
-        fprintf(stderr, "MatioBackend::write: Please provide a valid append direction (provided is %d).\n Allowed values are: 1(rows-wise), 2(column-wise), 3(slice-wise).\n", append_dim);
-
-        err++;
-
-        // free pointer to previous mat variable
-        Mat_VarFree(mat_var);
-
-        return 0 == err;
-
-    }
-
-    // if the data to be appended is 3D,
-    // append it (if possible) to the third dimension.
-    if(slices > 1)
-    {
-        append_dim = 3;
-    }
-
     // At this point, the program will enter one of the following 3 if blocks,
     // based on the desired append direction
 
-    if(append_dim == 3)
+    if(n_dims == 3)
     {
         // check rows and cols compatibility for 3rd dimension append operation
 
-        if (!(rows_prev == rows && cols_prev == cols)){
+        if(!(rows_prev == rows && cols_prev == cols)){
 
             fprintf(stderr,
                     "MatioBackend::write: Cannot append data to existing variable "
@@ -320,13 +293,13 @@ bool MatioBackend::write(const char* var_name,
 
         }
 
-        if (rank_prev != 3){
+        if(rank_prev != 3){
 
             fprintf(stderr,
                     "MatioBackend::write: Cannot append new 2D data to already "
                     "existent 2D variable %s along dimension %d, since it "
                     "does not have one. Not allowed by MatIO. \n",
-                    var_name, append_dim);
+                    var_name, n_dims);
 
             err++;
 
@@ -337,14 +310,11 @@ bool MatioBackend::write(const char* var_name,
 
         }
 
-        // trying to append data in the third dimension --> overwriting n_dims,
-        // to allow MatIO to add this data also in case of input 2D data.
-        n_dims = 3;
     }
 
-    if (append_dim == 2){ // check input data compatibility for 2nd dimension append operation
+    if(n_dims == 2){ // check input data compatibility for 2nd dimension append operation
 
-        if (!(rows_prev == rows)){ // rows do not match
+        if(!(rows_prev == rows)){ // rows do not match
 
             fprintf(stderr,
                     "MatioBackend::write: Cannot append data to existing "
@@ -362,9 +332,9 @@ bool MatioBackend::write(const char* var_name,
         }
     }
 
-    if (append_dim == 1){ // check input data compatibility for 1st dimension append operation
+    if(n_dims == 1){ // check input data compatibility for 1st dimension append operation
 
-        if (!(cols_prev == cols)){
+        if(!(cols_prev == cols)){
 
             fprintf(stderr,
                     "MatioBackend::write: Cannot append data to existing variable "
@@ -388,7 +358,7 @@ bool MatioBackend::write(const char* var_name,
     int ret = Mat_VarWriteAppend(_mat_file,
                                  mat_var,
                                  _compression,
-                                 append_dim); // TBD compression from
+                                 n_dims); // TBD compression from
     // user
 
     // free pointer to mat variable
