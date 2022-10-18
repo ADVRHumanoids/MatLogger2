@@ -252,6 +252,39 @@ TEST_F(TestApi, checkTypes)
 }
 
 
+TEST_F(TestApi, checkMassiveDump)
+{
+    XBot::MatLogger2::Options opt;
+    opt.default_buffer_size = 1e4;
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/checkMassiveDumpLog", opt);
+    logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    std::vector<std::string> var_names;
+    for(int i = 0; i < 100; i++)
+    {
+        var_names.push_back("var_" + std::to_string(i+1));
+    }
+
+    size_t var_size = 50;
+
+    for(int i = 0; i < (1e3); i++)
+    {
+        Eigen::VectorXd v;
+        v.setConstant(var_size, i);
+
+        for(auto& vname : var_names)
+        {
+            logger->add(vname, v);
+        }
+
+        std::cout << v.transpose() << "\n";
+        std::cout << i << "\n";
+    }
+
+    std::cout << "calling destructor \n";
+    logger.reset();
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
