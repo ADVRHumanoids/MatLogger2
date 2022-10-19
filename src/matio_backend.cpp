@@ -202,9 +202,7 @@ bool MatioBackend::write(const char* var_name,
                          const double* data,
                          int rows,
                          int cols,
-                         int slices,
-                         int append_dim  // todo: unused ??? @AndPatr
-                         )
+                         int slices)
 {
     int err = 0;
 

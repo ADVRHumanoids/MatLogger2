@@ -91,6 +91,9 @@ MatLogger2::MatLogger2(std::string file, Options opt):
     _buffer_mode(VariableBuffer::Mode::producer_consumer),
     _opt(opt)
 {
+
+    std::cout <<  "\n\n*************** Entering constructor ***************\n\n" << std::endl;
+
     // get the file extension, or empty string if there is none
     std::string extension = get_file_extension(file);
     
@@ -107,7 +110,7 @@ MatLogger2::MatLogger2(std::string file, Options opt):
     else if(extension != "mat") // extension different from .mat, error
     {
         throw std::invalid_argument("MAT-file name should either have .mat \
-extension, or no extension at all");
+        extension, or no extension at all");
     }
     
     // create mat file (erase if existing already)
@@ -231,6 +234,8 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
 
 bool MatLogger2::add(const std::string& var_name, double scalar)
 {
+    std::cout << "\n\n***************I am adding stuff..***************\n\n" << std::endl;
+
     // turn scalar into a 1x1 matrix
     Eigen::Matrix<double, 1, 1> data(scalar);
     
@@ -241,6 +246,8 @@ bool MatLogger2::add(const std::string& var_name, double scalar)
 
 bool MatLogger2::save(const std::string & var_name, const MatData & var_data)
 {
+    std::cout << "\n\n*************** I am saving stuff.. ***************\n\n" << std::endl;
+
     std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
     _matdata_queue.emplace(var_name, var_data);
     return true;
@@ -248,15 +255,19 @@ bool MatLogger2::save(const std::string & var_name, const MatData & var_data)
 
 bool MatLogger2::save(const std::string & var_name, MatData && var_data)
 {
-   std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
-   _matdata_queue.emplace(var_name, var_data);
-   return true;
+    std::cout << "\n\n ***************I am saving stuff..*************** \n\n" << std::endl;
+
+    std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
+    _matdata_queue.emplace(var_name, var_data);
+    return true;
 }
 
 bool MatLogger2::readvar(const std::string& var_name, 
                          Eigen::MatrixXd& mat_data,
                          int& slices)
 {
+
+    std::cout << "\n\n*************** I am reading vars.. ***************\n\n" << std::endl;
 
     bool var_read_ok  = _backend->readvar(var_name.c_str(), mat_data, slices);
 
@@ -267,6 +278,8 @@ bool MatLogger2::readvar(const std::string& var_name,
 bool MatLogger2::read_container(const std::string& var_name,
                     matlogger2::MatData& matdata)
 {
+    std::cout << "\n\n*************** I am reading containers.. *************** \n\n" << std::endl;
+
     bool var_read_ok  = _backend->read_container(var_name.c_str(), matdata);
 
     return var_read_ok;
@@ -296,6 +309,7 @@ int MatLogger2::flush_available_data()
         {
             auto matdata = std::move(_matdata_queue.front());
             _matdata_queue.pop();
+            std::cout << "\n\n ***************writing containers from backend..*************** \n\n" << std::endl;
             _backend->write_container(matdata.first.c_str(), matdata.second);
         }
     }
@@ -339,6 +353,7 @@ int MatLogger2::flush_available_data()
             }
         
             // write block
+            std::cout << "\n\n*************** writing to file from backend..*************** \n\n" << std::endl;
             _backend->write(p.second.get_name().c_str(),
                             block.data(),
                             rows, cols, slices);
@@ -353,7 +368,7 @@ int MatLogger2::flush_available_data()
 
 XBot::VariableBuffer * XBot::MatLogger2::find_or_create(const std::string& var_name, 
                                                         int rows, int cols)
-{
+{    
     // try to find var_name
     auto it = _vars.find(var_name);
     
@@ -398,6 +413,7 @@ MatLogger2::~MatLogger2()
     // set producer_consumer mode to be able to call read_block()
     set_buffer_mode(VariableBuffer::Mode::producer_consumer);
     
+    std::cout << "\n\n***************starting flushing from destructor..***************\n\n" << std::endl;
     // flush to queue and then flush to disk till all buffers are empty
     while(!flush_to_queue_all())
     {
@@ -411,6 +427,8 @@ MatLogger2::~MatLogger2()
     printf("flushed all data for file '%s'\n", _file_name.c_str());
     #endif
     
+    std::cout << "\n\n***************closing backend..***************\n\n" << std::endl;
+
     _backend->close();
 }
 
