@@ -267,7 +267,7 @@ TEST_F(TestApi, checkMassiveDump)
 
     size_t var_size = 50;
 
-    for(int i = 0; i < (1e4); i++)
+    for(int i = 0; i < (1e5); i++)
     {
         Eigen::VectorXd v;
         v.setConstant(var_size, i);

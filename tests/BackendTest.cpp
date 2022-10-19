@@ -354,10 +354,14 @@ TEST_F(BackendTest, append_to_existing_data)
     ASSERT_TRUE(_backend->write(this->new_var_name1.c_str(),
                     this->new_var1.data(),
                     this->n_rows1, this->n_cols1, this->n_slices1));
-
-    ASSERT_TRUE(_backend->write("pippo",
+    // adding a column vector
+    ASSERT_TRUE(_backend->write(this->new_var_name1.c_str(),
                     this->new_var4.data(),
                     this->n_rows4, this->n_cols4, this->n_slices1));
+    // adding a copy of the original matrix
+    ASSERT_TRUE(_backend->write(this->new_var_name1.c_str(),
+                    this->new_var1.data(),
+                    this->n_rows1, this->n_cols1, this->n_slices1));
 
     _backend->close();
 
