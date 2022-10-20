@@ -186,10 +186,19 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     }
 
     if(buffer_size == -1)
-    {
+    { // buffer size not provided
         const int max_buf_size = _opt.default_buffer_size_max_bytes/sizeof(double)/rows/cols;
 
         buffer_size = std::min(max_buf_size, _opt.default_buffer_size);
+
+        if(buffer_size != _opt.default_buffer_size)
+        {
+            fprintf(stderr, "MatLogger2::create -> warning: the default buffer size is %i, "
+                            "which is beyond the internally set threshold of %i. You may experience data loss.\n"
+                            "To prevent this, manually call the MatLogger2::create() method with the desired buffer "
+                            "size, before calling the MatLogger2::add() method.\n",
+                     _opt.default_buffer_size, max_buf_size);
+        }
 
     }
     
