@@ -42,10 +42,12 @@ protected:
     std::string new_var_name3 = "vector_row";
     std::string new_var_name4 = "vector_col";
     std::string new_var_name5 = "append_test_mat";
+    std::string new_var_name6= "lon_vect_test_mat";
 
     std::string stndrd_wrt_test_path = "/tmp/write_test1.mat";
     std::string cellstruct_test_path = "/tmp/write_test2.mat";
     std::string append_test_path = "/tmp/write_test3.mat";
+    std::string append_long_vect_path = "/tmp/write_test4.mat";
 
     Eigen::MatrixXd new_var1, new_var2, new_var3, new_var4;
 
@@ -364,6 +366,34 @@ TEST_F(BackendTest, append_to_existing_data)
                     this->n_rows1, this->n_cols1, this->n_slices1));
 
     _backend->close();
+
+}
+
+TEST_F(BackendTest, checkHugeVarDump)
+{
+  std::unique_ptr<XBot::matlogger2::Backend> _backend;
+
+  _backend = XBot::matlogger2::Backend::MakeInstance("matio");
+
+  ASSERT_TRUE(_backend->init(this->append_long_vect_path, false));
+
+  size_t vect_length = 1e6;
+  const size_t MB_SIZE = 1e6;
+
+  std::cout << "Dumping long vector of approximately " << vect_length * sizeof(double) / MB_SIZE << " MB" << std::endl;
+
+  for(int i = 0; i < (vect_length); i++)
+  {
+      double v = i;
+      ASSERT_TRUE(_backend->write(this->new_var_name6.c_str(),
+                      &v,
+                      1, 1, 1));
+
+  }
+
+  std::cout << "closing backend \n";
+
+  _backend->close();
 
 }
 
