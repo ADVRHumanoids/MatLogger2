@@ -267,7 +267,8 @@ TEST_F(TestApi, checkMassiveDump)
 
     size_t var_size = 50;
 
-    for(int i = 0; i < (1e5); i++)
+    std::cout << "starting massive dump... \n";
+    for(int i = 0; i < (1e6); i++)
     {
         Eigen::VectorXd v;
         v.setConstant(var_size, i);
@@ -276,9 +277,6 @@ TEST_F(TestApi, checkMassiveDump)
         {
             logger->add(vname, v);
         }
-
-        std::cout << v.transpose() << "\n";
-        std::cout << i << "\n";
     }
 
     std::cout << "calling destructor \n";
