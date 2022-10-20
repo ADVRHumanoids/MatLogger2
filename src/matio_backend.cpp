@@ -22,7 +22,7 @@ extern "C" MATL2_API Backend * create_instance()
     return new MatioBackend;
 }
 
-//////////////// UTF-8 <--> UTF-16 conversion utilities ///////////////////
+/********* UTF-8 <--> UTF-16 conversion utilities *********/
 
 namespace{
 
@@ -49,11 +49,13 @@ std::string utf16_utf8(std::u16string source)
 
 }
 
-//////////////////////////////////////////////////////
+/********* Backend standard methods *********/
 
 bool MatioBackend::init(std::string logger_name,
                         bool enable_compression)
 {
+    // initializes backend, given a name for the mat file
+
     int err = 0;
 
     // if file already exists, delete it
@@ -86,10 +88,12 @@ bool MatioBackend::init(std::string logger_name,
     _compression = enable_compression ? MAT_COMPRESSION_ZLIB : MAT_COMPRESSION_NONE;
 
     return bool(_mat_file);
-} // Initialize backend, given a name for the mat file.
+}
 
 bool MatioBackend::load(std::string matfile_path, bool enable_writing_access = false)
 {
+  // loads an already existent mat file into the backend
+
     _mat_access_mode = enable_writing_access ? MAT_ACC_RDWR : MAT_ACC_RDONLY;
 
     int err = 0;
@@ -125,10 +129,12 @@ bool MatioBackend::load(std::string matfile_path, bool enable_writing_access = f
 
     return 0 == err;
 
-} // Load an already existent mat file inside the backend
+}
 
 bool MatioBackend::get_var_names(std::vector<std::string>& var_names)
 {
+    // retrieves all variable names
+
     int err = 0;
     size_t n1;
 
@@ -171,10 +177,12 @@ bool MatioBackend::get_var_names(std::vector<std::string>& var_names)
     }
 
     return 0 == err;
-} // Retrieve all variable names
+}
 
 bool MatioBackend::get_matpath(const char** matname)
 {
+    //retrieves the absolute path of the mat file loaded in the current instance of the backend
+
     int err = 0;
 
     if ( _mat_file == NULL ) { // check if mat file object exists
@@ -196,7 +204,7 @@ bool MatioBackend::get_matpath(const char** matname)
     }
 
     return 0 == err;
-} // Method for retrieving the absolute path of the mat file loaded in the current instance of the backend
+}
 
 bool MatioBackend::write(const char* var_name,
                          const double* data,
@@ -204,9 +212,12 @@ bool MatioBackend::write(const char* var_name,
                          int cols,
                          int slices)
 {
+
+    // writes/appends basic numeric variables to file (i.e. matrices)
+
     int err = 0;
 
-    if ( _mat_file == NULL ) { // check if mat file object exists
+    if ( _mat_file == NULL ) {
 
         fprintf(stderr, "MatioBackend::write: Failed to find mat object. Did you remember to call either the init() or load() methods first? \n");
 
@@ -226,7 +237,7 @@ bool MatioBackend::write(const char* var_name,
 
     }
 
-    if (slices <= 0){ // when adding data, allow only up to 2D data to be appended.
+    if (slices <= 0){
 
         fprintf(stderr, "MatioBackend::write: Not valid value %d for slices parameter. It must be a strictly positive integer.\n", slices);
 
@@ -236,21 +247,99 @@ bool MatioBackend::write(const char* var_name,
 
     }
 
+    // setting number of dimensions for writing data to file
     std::size_t dims[3];
-    int n_dims = slices == 1 ? 2 : 3;
+    int n_dims = slices == 1 ? 2 : 3; // data will be appended to third dimension for any slices > 1
+    // by default, if not appending on the third dimension, append column-wise
     dims[0] = rows;
     dims[1] = cols;
     dims[2] = slices;
 
-    // See if the variable already exists
+    // If variables already exists, first perform some dimension compatibility checks ---> MAKES THE FILE
+    // GROW WITHOUT STOP. THERE MAY BE SOME ISSUES IN READING AND WRITING TO FILE IN THE SAME CHUNK OF CODE
+
+//    matvar_t* mat_var_previous = Mat_VarRead(_mat_file, var_name); // read variable (if it exists)
+
+//    if(mat_var_previous != NULL)
+//    { // variable exists --> check dimensions compatibility
+
+//        int rows_prev = mat_var_previous->dims[0];
+//        int cols_prev = mat_var_previous->dims[1];
+//        int rank_prev = mat_var_previous->rank;
+
+//        if(n_dims == 3)
+//        {
+//            // check rows and cols compatibility for 3rd dimension append operation
+
+//            if(!(rows_prev == rows && cols_prev == cols)){
+
+//                fprintf(stderr,
+//                        "MatioBackend::write: Cannot append data to existing variable "
+//                        "along 3rd dimension (slice-wise).\n New data has slice dimensions "
+//                        "(%d, %d),  while the preexisting data (%d, %d).\n",
+//                        rows, rows_prev, cols, cols_prev);
+
+//                err++;
+
+//                // free pointer to previous mat variable
+//                Mat_VarFree(mat_var_previous);
+
+//                return 0 == err;
+
+//            }
+
+//            if(rank_prev != 3){
+
+//                fprintf(stderr,
+//                        "MatioBackend::write: Cannot append new 2D data to already "
+//                        "existent 2D variable %s along dimension %d, since it "
+//                        "does not have one. Not allowed by MatIO. \n",
+//                        var_name, n_dims);
+
+//                err++;
+
+//                // free pointer to previous mat variable
+//                Mat_VarFree(mat_var_previous);
+
+//                return 0 == err;
+
+//            }
+
+//        }
+
+//        if(n_dims == 2){ // check input data compatibility for 2nd dimension append operation
+
+//            if(!(rows_prev == rows)){ // rows do not match
+
+//                fprintf(stderr,
+//                        "MatioBackend::write: Cannot append data to existing "
+//                        "variable along 2rd dimension (column-wise).\n "
+//                        "New data has (%d) rows, while the preexisting  one has (%d) rows.\n",
+//                        rows, rows_prev);
+
+//                err++;
+
+//                // free pointer to previous mat variable
+//                Mat_VarFree(mat_var_previous);
+
+//                return 0 == err;
+
+//            }
+//        }
+
+//        // After these checks, the input data is appendable
+//    }
+
+//    Mat_VarFree(mat_var_previous); // free pointer
+
+    // create new variable with the provided data
     matvar_t* mat_var = Mat_VarCreate(var_name,
                                       MAT_C_DOUBLE,
                                       MAT_T_DOUBLE,
                                       n_dims,
                                       dims,
                                       (void *)data,
-                                      MAT_F_DONT_COPY_DATA); // create variable and assign a pointer to it
-
+                                      MAT_F_DONT_COPY_DATA);
     // creation of variable failed
     if(mat_var == NULL)
     {
@@ -263,101 +352,10 @@ bool MatioBackend::write(const char* var_name,
 
     }
 
-//    int rows_prev = mat_var->dims[0];
-//    int cols_prev = mat_var->dims[1];
-//    int rank_prev = mat_var->rank;
-
-    // At this point, the program will enter one of the following 3 if blocks,
-    // based on the desired append direction
-
-//    if(n_dims == 3)
-//    {
-//        // check rows and cols compatibility for 3rd dimension append operation
-
-//        if(!(rows_prev == rows && cols_prev == cols)){
-
-//            fprintf(stderr,
-//                    "MatioBackend::write: Cannot append data to existing variable "
-//                    "along 3rd dimension (slice-wise).\n New data has slice dimensions "
-//                    "(%d, %d),  while the preexisting data (%d, %d).\n",
-//                    rows, rows_prev, cols, cols_prev);
-
-//            err++;
-
-//            // free pointer to previous mat variable
-//            Mat_VarFree(mat_var);
-
-//            return 0 == err;
-
-//        }
-
-//        if(rank_prev != 3){
-
-//            fprintf(stderr,
-//                    "MatioBackend::write: Cannot append new 2D data to already "
-//                    "existent 2D variable %s along dimension %d, since it "
-//                    "does not have one. Not allowed by MatIO. \n",
-//                    var_name, n_dims);
-
-//            err++;
-
-//            // free pointer to previous mat variable
-//            Mat_VarFree(mat_var);
-
-//            return 0 == err;
-
-//        }
-
-//    }
-
-//    if(n_dims == 2){ // check input data compatibility for 2nd dimension append operation
-
-//        if(!(rows_prev == rows)){ // rows do not match
-
-//            fprintf(stderr,
-//                    "MatioBackend::write: Cannot append data to existing "
-//                    "variable along 2rd dimension (column-wise).\n "
-//                    "New data has (%d) rows, while the preexisting  one has (%d) rows.\n",
-//                    rows, rows_prev);
-
-//            err++;
-
-//            // free pointer to previous mat variable
-//            Mat_VarFree(mat_var);
-
-//            return 0 == err;
-
-//        }
-//    }
-
-//    if(n_dims == 1){ // check input data compatibility for 1st dimension append operation
-
-//        if(!(cols_prev == cols)){
-
-//            fprintf(stderr,
-//                    "MatioBackend::write: Cannot append data to existing variable "
-//                    "along 1st dimension (row-wise).\n New data has %d columns, "
-//                    " while the preexisting one has %d columns.\n",
-//                    cols, cols_prev);
-
-//            err++;
-
-//            // free pointer to previous mat variable
-//            Mat_VarFree(mat_var);
-
-//            return 0 == err;
-
-//        }
-//    }
-
-    // After these checks, the input data is appendable
-
-
     int ret = Mat_VarWriteAppend(_mat_file,
                                  mat_var,
                                  _compression,
-                                 n_dims); // TBD compression from
-    // user
+                                 n_dims); // TBD compression from user
 
     // free pointer to mat variable
     Mat_VarFree(mat_var);
@@ -376,10 +374,11 @@ bool MatioBackend::write(const char* var_name,
 
     return 0 == err;
 
-} // Method for writing/appending basic numeric variables to file (i.e. matrices)
+}
 
 bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int& slices)
 {
+    // Reads basic numeric variable (i.e. matrices)
 
     int err = 0;
 
@@ -447,10 +446,11 @@ bool MatioBackend::readvar(const char* var_name, Eigen::MatrixXd& mat_data, int&
 
     return 0 == err;
 
-} // Method for reading basic numeric variable (i.e. matrices)
+}
 
 bool MatioBackend::delvar(const char* var_name)
 {
+    // deleting a specific variable
     int err = 0;
 
     if ( _mat_file == NULL ) { // check if mat file object exists
@@ -473,19 +473,21 @@ bool MatioBackend::delvar(const char* var_name)
     }
 
     return 0 == err;
-} // Method for deleting a specific variable
+}
 
 bool MatioBackend::close()
 {
     return 0 == Mat_Close(_mat_file);
 }
 
-//////////////// Methods for container writing (parsing of a MatData into a matvar_t object) ///////////////////
+/********* Methods for container writing (parsing of a MatData into a matvar_t object) *********/
 
 matvar_t* make_matvar(const std::string& name, const MatData& matdata); // forward declaration
 
 struct create_matvar_visitor : boost::static_visitor< matvar_t* >
 {
+    // visitor for creating MatIO variables based on their base scalar type (MatrixXd, string, double). Interfaces directly with MatIO
+
     std::string _name;
 
     matvar_t* operator()(const Eigen::MatrixXd& mat)
@@ -541,21 +543,25 @@ struct create_matvar_visitor : boost::static_visitor< matvar_t* >
 
         return mat_var;
     }
-}; // Visitor for creating MatIO variables based on their base scalar type (MatrixXd, string, double). Interfaces directly with MatIO
+};
+
 
 matvar_t* make_scalar_matvar(const std::string& name, const MatData& scalar_matdata)
 {
+    // The recursive call to make_cell_matvar and make_struct_matvar methods
+    // will eventually decay into a make_scalar_matvar() call and break the recursion.
+    // make_scalar_matvar assigns data to the output matvar_t object, based on the type of scalar_matdata.
 
     create_matvar_visitor visitor;
     visitor._name = name;
     return boost::apply_visitor(visitor, scalar_matdata.value());
 
-} // The recursive call to make_cell_matvar and make_struct_matvar methods
-// will eventually decay into a make_scalar_matvar() call and break the recursion.
-// make_scalar_matvar assigns data to the output matvar_t object, based on the type of scalar_matdata.
+}
 
 matvar_t* make_struct_matvar(const std::string& name, const MatData& struct_matdata)
 {
+  // creates the outer shell of the structure, and then calls make_matvar recursively for each element
+  // until the bottom data layer is reached. At that point, make_scalar_matvar is called and the MatIO final matvar_t* is returned.
 
     std::vector<const char *> field_names;
 
@@ -586,11 +592,12 @@ matvar_t* make_struct_matvar(const std::string& name, const MatData& struct_matd
 
     return mat_struct;
 
-} // Creates the outer shell of the structure, and then calls make_matvar recursively for each element
-// until the bottom data layer is reached. At that point, make_scalar_matvar is called and the MatIO final matvar_t* is returned.
+}
 
 matvar_t* make_cell_matvar(const std::string& name, const MatData& cell_matdata)
 {
+    // creates the outer cell and than calls recursively make_matvar for each element of the cell until the bottom data layer is reached.
+    // At that point, make_scalar_matvar is called and the MatIO matvar_t* is returned.
 
     size_t cell_dim[2] = {cell_matdata.asCell().size(), 1};
 
@@ -612,11 +619,11 @@ matvar_t* make_cell_matvar(const std::string& name, const MatData& cell_matdata)
 
     return outercell;
 
-} // Creates the outer cell and than calls recursively make_matvar for each element of the cell until the bottom data layer is reached.
-// At that point, make_scalar_matvar is called and the MatIO matvar_t* is returned.
+}
 
 matvar_t* make_matvar(const std::string& name, const MatData& matdata)
 {
+    // calls the right assembly method based on the input data type
 
     matvar_t* elem_matvar = nullptr;
 
@@ -635,10 +642,12 @@ matvar_t* make_matvar(const std::string& name, const MatData& matdata)
 
     return elem_matvar;
 
-} // Calls the right assembly method based on the input data type
+}
 
 bool MatioBackend::write_container(const char* name, const MatData& data)
 {
+    // based on the input matdata, builds recursively the associated MatIO variable and then writes it to file.
+
     int err = 0;
 
     if ( _mat_file == NULL ) { // check if mat file object exists
@@ -659,14 +668,19 @@ bool MatioBackend::write_container(const char* name, const MatData& data)
 
     return ret == 0;
 
-} // Based on the input matdata, builds recursively the associated MatIO variable and then writes it to file.
+}
 
-//////////////// Methods for container reading (parsing of a matvar_t into a MatData object) ///////////////////
+/********* Methods for container reading (parsing of a matvar_t into a MatData object) *********/
 
 bool make_matdata(const matvar_t* mat_var, MatData& matdata); // forward declaration
 
 bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
 {
+
+    // The recursive call to make_cell_matdata and make_struct_matdata methods
+    // will eventually decay into a make_scalar_matdata() call and break the recursion.
+    // make_scalar_matdata assigns data to the provided MatData object, based on the type of scalar_mat_var.
+
     int err = 0;
 
     // double (matrix or single value)
@@ -740,12 +754,12 @@ bool make_scalar_matdata(const matvar_t* scalar_mat_var, MatData& matdata)
 
     return 0 == err;
 
-}// The recursive call to make_cell_matdata and make_struct_matdata methods
-// will eventually decay into a make_scalar_matdata() call and break the recursion.
-// make_scalar_matdata assigns data to the provided MatData object, based on the type of scalar_mat_var.
+}
 
 bool make_cell_matdata(const matvar_t* matio_cell_array, MatData& matdata)
 {
+    // Creates the outer cell and than calls recursively make_matdata for each element until the bottom data layer is reached.
+    // At that point, make_scalar_matdata is called and provided matdata is fully populated.
 
     int err = 0;
 
@@ -765,11 +779,11 @@ bool make_cell_matdata(const matvar_t* matio_cell_array, MatData& matdata)
 
     return 0 == err;
 
-}// Creates the outer cell and than calls recursively make_matdata for each element until the bottom data layer is reached.
-// At that point, make_scalar_matdata is called and provided matdata is fully populated.
-
+}
 bool make_struct_matdata(const matvar_t* matio_structure, MatData& matdata)
 {
+    // Creates the outer structure and than calls recursively make_matdata for each element until the bottom data layer is reached.
+    // At that point, make_scalar_matdata is called and provided matdata is fully populated.
 
     int err = 0;
 
@@ -797,11 +811,11 @@ bool make_struct_matdata(const matvar_t* matio_structure, MatData& matdata)
 
     return 0 == err;
 
-}// Creates the outer structure and than calls recursively make_matdata for each element until the bottom data layer is reached.
-// At that point, make_scalar_matdata is called and provided matdata is fully populated.
+}
 
 bool make_matdata(const matvar_t* mat_var, MatData& matdata)
 {
+    // Calls the right MatData assembly method based on the input data type
     int err = 0;
 
     if(mat_var->class_type == MAT_C_CELL) // cell array
@@ -847,10 +861,13 @@ bool make_matdata(const matvar_t* mat_var, MatData& matdata)
 
     return 0 == err;
 
-} // Calls the right MatData assembly method based on the input data type
+}
 
 bool MatioBackend::read_container(const char* var_name, MatData& matdata)
 {
+    // Based on the input var_name, read the variable from the loaded at file and
+    //  Builds recursively the associated MatData object.
+
     int err = 0;
 
     if ( _mat_file == NULL ) { // check if mat file object exists
@@ -895,5 +912,4 @@ bool MatioBackend::read_container(const char* var_name, MatData& matdata)
 
     return err == 0;
 
-} // Based on the input var_name, read the variable from the loaded at file and
-//  Builds recursively the associated MatData object.
+}
