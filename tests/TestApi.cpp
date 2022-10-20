@@ -255,7 +255,7 @@ TEST_F(TestApi, checkTypes)
 TEST_F(TestApi, checkMassiveDump)
 {
     XBot::MatLogger2::Options opt;
-    opt.default_buffer_size = 1e4;
+    opt.default_buffer_size = 1e8;
     auto logger = XBot::MatLogger2::MakeLogger("/tmp/checkMassiveDumpLog", opt);
     logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
@@ -268,7 +268,7 @@ TEST_F(TestApi, checkMassiveDump)
     size_t var_size = 50;
 
     std::cout << "starting massive dump... \n";
-    for(int i = 0; i < (1e6); i++)
+    for(int i = 0; i < (1e5); i++)
     {
         Eigen::VectorXd v;
         v.setConstant(var_size, i);
