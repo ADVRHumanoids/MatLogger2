@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(matlogger2 VERSION 1.3.1 LANGUAGES CXX)
+project(matlogger2 VERSION 1.4.0 LANGUAGES CXX)
 
 # Loading settings from external projects
 
