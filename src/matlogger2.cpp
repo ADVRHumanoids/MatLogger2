@@ -92,7 +92,9 @@ MatLogger2::MatLogger2(std::string file, Options opt):
     _opt(opt)
 {
 
-    std::cout <<  "\n\n*************** Entering constructor ***************\n\n" << std::endl;
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Creating MatLogger2 object... \n" << std::endl;
+    #endif
 
     // get the file extension, or empty string if there is none
     std::string extension = get_file_extension(file);
@@ -234,7 +236,9 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
 
 bool MatLogger2::add(const std::string& var_name, double scalar)
 {
-    std::cout << "\n\n***************I am adding stuff..***************\n\n" << std::endl;
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Adding variable " << var_name << "\n" << std::endl;
+    #endif
 
     // turn scalar into a 1x1 matrix
     Eigen::Matrix<double, 1, 1> data(scalar);
@@ -246,7 +250,9 @@ bool MatLogger2::add(const std::string& var_name, double scalar)
 
 bool MatLogger2::save(const std::string & var_name, const MatData & var_data)
 {
-    std::cout << "\n\n*************** I am saving stuff.. ***************\n\n" << std::endl;
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Saving variable " << var_name << "\n" << std::endl;
+    #endif
 
     std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
     _matdata_queue.emplace(var_name, var_data);
@@ -255,7 +261,10 @@ bool MatLogger2::save(const std::string & var_name, const MatData & var_data)
 
 bool MatLogger2::save(const std::string & var_name, MatData && var_data)
 {
-    std::cout << "\n\n ***************I am saving stuff..*************** \n\n" << std::endl;
+
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Saving variable " << var_name << "\n" << std::endl;
+    #endif
 
     std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
     _matdata_queue.emplace(var_name, var_data);
@@ -267,7 +276,9 @@ bool MatLogger2::readvar(const std::string& var_name,
                          int& slices)
 {
 
-    std::cout << "\n\n*************** I am reading vars.. ***************\n\n" << std::endl;
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Reading variable " << var_name << "\n" << std::endl;
+    #endif
 
     bool var_read_ok  = _backend->readvar(var_name.c_str(), mat_data, slices);
 
@@ -278,7 +289,9 @@ bool MatLogger2::readvar(const std::string& var_name,
 bool MatLogger2::read_container(const std::string& var_name,
                     matlogger2::MatData& matdata)
 {
-    std::cout << "\n\n*************** I am reading containers.. *************** \n\n" << std::endl;
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Reading container " << var_name << "\n" << std::endl;
+    #endif
 
     bool var_read_ok  = _backend->read_container(var_name.c_str(), matdata);
 
@@ -287,6 +300,10 @@ bool MatLogger2::read_container(const std::string& var_name,
 
 bool MatLogger2::delvar(const std::string& var_name)
 {
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Deleting variable " << var_name << "\n" << std::endl;
+    #endif
+
     bool var_del_ok = _backend->delvar(var_name.c_str());
 
     return var_del_ok;
@@ -294,6 +311,10 @@ bool MatLogger2::delvar(const std::string& var_name)
 
 bool MatLogger2::get_mat_var_names(std::vector<std::string>& var_names)
 {   
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Getting variables names \n" << std::endl;
+    #endif
+
     bool get_var_names_ok = _backend->get_var_names(var_names);
 
     return get_var_names_ok;
@@ -309,7 +330,11 @@ int MatLogger2::flush_available_data()
         {
             auto matdata = std::move(_matdata_queue.front());
             _matdata_queue.pop();
-            std::cout << "\n\n ***************writing containers from backend..*************** \n\n" << std::endl;
+
+            #ifdef MATLOGGER2_VERBOSE
+            std::cout <<  "\n Flushing matdata variable (writing container) " << matdata.first.c_str() << "\n" << std::endl;
+            #endif
+
             _backend->write_container(matdata.first.c_str(), matdata.second);
         }
     }
@@ -353,7 +378,11 @@ int MatLogger2::flush_available_data()
             }
         
             // write block
-            std::cout << "\n\n*************** writing to file from backend..*************** \n\n" << std::endl;
+
+            #ifdef MATLOGGER2_VERBOSE
+            std::cout <<  "\n Writing data of standard variable" << p.second.get_name().c_str() << " to file...\n" << std::endl;
+            #endif
+
             _backend->write(p.second.get_name().c_str(),
                             block.data(),
                             rows, cols, slices);
@@ -411,9 +440,13 @@ MatLogger2::~MatLogger2()
     set_on_data_available_callback(VariableBuffer::CallbackType());
     
     // set producer_consumer mode to be able to call read_block()
+
     set_buffer_mode(VariableBuffer::Mode::producer_consumer);
-    
-    std::cout << "\n\n***************starting flushing from destructor..***************\n\n" << std::endl;
+
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Destroying MatLogger2 instance and dumping data to file ...\n" << std::endl;
+    #endif
+
     // flush to queue and then flush to disk till all buffers are empty
     while(!flush_to_queue_all())
     {
@@ -422,13 +455,13 @@ MatLogger2::~MatLogger2()
     
     // flush to disk remaining data from queues
     while(flush_available_data() > 0);
-    
     #ifdef MATLOGGER2_VERBOSE
-    printf("flushed all data for file '%s'\n", _file_name.c_str());
+    printf("\n Flushed all data for file '%s'\n", _file_name.c_str());
     #endif
-    
-    std::cout << "\n\n***************closing backend..***************\n\n" << std::endl;
 
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Closing backend ...\n" << std::endl;
+    #endif
     _backend->close();
 }
 
