@@ -258,8 +258,8 @@ TEST_F(TestApi, checkMassiveDump)
     size_t n_vars = 50;
     const size_t GB_SIZE = 1e9;
 
-    std::cout << "Performing a massive file dump or approximately." <<
-              var_rows * var_cols * sizeof(double) * n_vars / GB_SIZE <<  " GB. \n" <<
+    std::cout << "Performing a massive file dump or approximately " <<
+              (double)(var_rows * var_cols) * ((double)sizeof(double)) * ((double)n_vars / (double)GB_SIZE) <<  " GB. \n" <<
               "This might take some time to complete... "<< std::endl;
 
     std::vector<std::string> var_names;

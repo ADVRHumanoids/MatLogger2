@@ -377,10 +377,10 @@ TEST_F(BackendTest, checkHugeVarDump)
 
   ASSERT_TRUE(_backend->init(this->append_long_vect_path, false));
 
-  size_t vect_length = 1e6;
+  size_t vect_length = 1e5;
   const size_t MB_SIZE = 1e6;
 
-  std::cout << "Dumping long vector of approximately " << vect_length * sizeof(double) / MB_SIZE << " MB" << std::endl;
+  std::cout << "Dumping long vector of approximately " << ((double)vect_length) * ((double)sizeof(double)) / ((double)MB_SIZE) << " MB" << std::endl;
 
   for(int i = 0; i < (vect_length); i++)
   {
