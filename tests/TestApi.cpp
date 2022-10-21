@@ -192,14 +192,9 @@ TEST_F(TestApi, checkTypes)
     ASSERT_TRUE(logger->add("scalar_var", (float) 1));
     ASSERT_TRUE(logger->add("scalar_var", (double)1));
     
-    
-    
-    
-    
     Eigen::VectorXi vector_valid_i(10);
     Eigen::VectorXd vector_valid_d(10);
     Eigen::VectorXf vector_valid_f(10);
-    
     
     ASSERT_TRUE(logger->add("vector_var", vector_valid_i));
     ASSERT_TRUE(logger->add("vector_var", vector_valid_f));
@@ -251,6 +246,48 @@ TEST_F(TestApi, checkTypes)
     
 }
 
+TEST_F(TestApi, checkMassiveDump)
+{
+    XBot::MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6;
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/checkMassiveDumpLog", opt);
+    logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    size_t var_rows = 5;
+    size_t var_cols = 1e6;
+    size_t n_vars = 50;
+    const size_t GB_SIZE = 1e9;
+
+    std::cout << "Performing a massive file dump or approximately " <<
+              (double)(var_rows * var_cols) * ((double)sizeof(double)) * ((double)n_vars / (double)GB_SIZE) <<  " GB. \n" <<
+              "This might take some time to complete... "<< std::endl;
+
+    std::vector<std::string> var_names;
+    for(int i = 0; i < n_vars; i++)
+    {
+        var_names.push_back("var_" + std::to_string(i+1));
+        ASSERT_TRUE(logger->create(var_names[i], var_rows, 1, opt.default_buffer_size));
+    }
+
+    // calling manually the create method
+    // to avoid data loss due to the internally
+    // set buffer size
+
+    std::cout << "starting massive dump... \n";
+    for(int i = 0; i < var_cols; i++)
+    {
+        Eigen::VectorXd v;
+        v.setConstant(var_rows, i);
+
+        for(auto& vname : var_names)
+        {
+            ASSERT_TRUE(logger->add(vname, v));
+        }
+    }
+
+    std::cout << "calling destructor \n";
+    logger.reset();
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

@@ -2664,7 +2664,7 @@ Mat_VarReadInfo(mat_t *mat, const char *name)
 
 /** @brief Reads the variable with the given name from a MAT file
  *
- * Reads the next variable in the Matlab MAT file
+ * Reads a variable in the Matlab MAT file
  * @ingroup MAT
  * @param mat Pointer to the MAT file
  * @param name Name of the variable to read

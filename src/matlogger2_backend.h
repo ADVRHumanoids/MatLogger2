@@ -34,8 +34,7 @@ namespace XBot { namespace matlogger2 {
         virtual bool write(const char* var_name, 
                            const double* data, 
                            int rows, int cols, 
-                           int slices, 
-                           int append_dim = 2) = 0;
+                           int slices) = 0;
 
         virtual bool write_container(const char* name,
                            const MatData& data);
