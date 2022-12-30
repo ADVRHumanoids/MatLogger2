@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <memory>
 #include <boost/variant.hpp>
 #include <Eigen/Dense>
 
