@@ -1,5 +1,5 @@
-#include <matlogger2/utils/mat_appender.h>
-#include <matlogger2/matlogger2.h>
+#include "matlogger2/utils/mat_appender.h"
+#include "matlogger2/matlogger2.h"
 
 #include <algorithm>
 #include <atomic>
@@ -120,7 +120,7 @@ bool MatAppender::add_logger(std::shared_ptr<MatLogger2> logger)
     // check for nullptr
     if(!logger)
     {
-        fprintf(stderr, "Error in %s: null pointer provided as argument\n", __PRETTY_FUNCTION__);
+        fprintf(stderr, "error in %s: null pointer provided as argument\n", __PRETTY_FUNCTION__);
         return false;
     }
     
@@ -149,7 +149,7 @@ bool MatAppender::add_logger(std::shared_ptr<MatLogger2> logger)
     
     if(it != impl()._loggers.end())
     {
-        fprintf(stderr, "Error in %s: trying to add same logger twice\n", __PRETTY_FUNCTION__);
+        fprintf(stderr, "error in %s: trying to add same logger twice\n", __PRETTY_FUNCTION__);
         return false;
     }
     
@@ -219,7 +219,9 @@ int MatAppender::Impl::flush_available_data_all()
         // If we managed to lock it, it'll be kept alive till the scope exit
         if(!logger)
         {
+            #ifdef MATLOGGER2_VERBOSE
             printf("MatAppender: removing expired logger..\n");
+            #endif
             return true; // removed expired logger
         }
         
@@ -251,9 +253,11 @@ void MatAppender::Impl::flush_thread_main()
             total_bytes += bytes;
         });
         
+        #ifdef MATLOGGER2_VERBOSE
         printf("Worked for %.2f sec (%.1f MB flushed)..", 
                work_time, bytes*1e-6);
         printf("..average load is %.2f \n", 1.0/(1.0+sleep_time_total/work_time_total));
+        #endif
         
         std::unique_lock<MutexType> lock(_cond_mutex);
         double sleep_time = measure_sec([this, &lock](){
@@ -269,14 +273,14 @@ void MatAppender::Impl::flush_thread_main()
         
     }
     
+    #ifdef MATLOGGER2_VERBOSE
     printf("Flusher thread exiting.. Written %.1f MB\n", total_bytes*1e-6);
+    #endif
 }
 
 
 MatAppender::~MatAppender()
-{
-    printf("%s\n", __PRETTY_FUNCTION__);
-    
+{    
     if(!impl()._flush_thread)
     {
         return;

@@ -1,9 +1,7 @@
-#include <matlogger2/matlogger2.h>
-#include <matlogger2/utils/mat_appender.h>
+#include "matlogger2/matlogger2.h"
+#include "matlogger2/utils/mat_appender.h"
 
 #include <unistd.h>
-
-
 
 int log_data(const auto& data, const auto& vars, auto& logger)
 {

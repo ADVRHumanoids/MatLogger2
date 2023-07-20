@@ -1,9 +1,14 @@
 #include <gtest/gtest.h>
-#include <matlogger2/matlogger2.h>
-#include <matlogger2/utils/mat_appender.h>
+
+#include "matlogger2/matlogger2.h"
+#include "matlogger2/utils/mat_appender.h"
+#include "matlogger2/mat_data.h"
+
 #include <signal.h>
 #include <chrono>
 #include <list>
+#include <map>
+#include <boost/variant.hpp>
 
 namespace
 {
@@ -41,6 +46,47 @@ protected:
      
      
 };
+
+
+TEST_F(TestApi, structExample)
+{
+    using namespace XBot::matlogger2;
+
+    auto struct_data = MatData::make_struct();
+    struct_data["field_1"] = MatData::make_cell(3);
+    struct_data["field_2"] = Eigen::MatrixXd::Identity(5, 8);
+    struct_data["field_3"] = MatData::make_struct();
+
+    struct_data["field_1"].asCell() = {1.0,
+            "ci\nao",
+            Eigen::MatrixXd::Identity(2,5)};
+
+    struct_data["field_3"]["subfield_1"] = 1;
+    struct_data["field_3"]["subfield_2"] = 2.0;
+    struct_data["field_3"]["subfield_3"] = 3.0;
+    struct_data["field_3"]["subfield_4"] = 4.0;
+
+    struct_data.print();
+
+    auto struct_data_cpy = struct_data;
+
+    struct_data_cpy["field_2"].value().as<Eigen::MatrixXd>() = Eigen::Matrix3d::Random();
+
+    struct_data_cpy.print();
+    struct_data.print();
+
+    int cell_size = 3;
+    auto cell_data = MatData::make_cell(cell_size);
+    cell_data[0] = Eigen::Vector2d::Random();
+    cell_data[1] = Eigen::Vector3d::Random();
+    cell_data[2] = Eigen::Vector4d::Random();
+
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/structExample");
+    logger->save("mvar", struct_data);
+    logger->save("cellvar", cell_data);
+    logger.reset();
+
+}
 
 TEST_F(TestApi, usageExample)
 {
@@ -146,14 +192,9 @@ TEST_F(TestApi, checkTypes)
     ASSERT_TRUE(logger->add("scalar_var", (float) 1));
     ASSERT_TRUE(logger->add("scalar_var", (double)1));
     
-    
-    
-    
-    
     Eigen::VectorXi vector_valid_i(10);
     Eigen::VectorXd vector_valid_d(10);
     Eigen::VectorXf vector_valid_f(10);
-    
     
     ASSERT_TRUE(logger->add("vector_var", vector_valid_i));
     ASSERT_TRUE(logger->add("vector_var", vector_valid_f));
@@ -205,8 +246,57 @@ TEST_F(TestApi, checkTypes)
     
 }
 
+TEST_F(TestApi, checkMassiveDump)
+{
+    XBot::MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6;
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/checkMassiveDumpLog", opt);
+    logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    size_t var_rows = 5;
+    size_t var_cols = 1e6;
+    size_t n_vars = 50;
+    const size_t GB_SIZE = 1e9;
+
+    std::cout << "Performing a massive file dump or approximately " <<
+              (double)(var_rows * var_cols) * ((double)sizeof(double)) * ((double)n_vars / (double)GB_SIZE) <<  " GB. \n" <<
+              "This might take some time to complete... "<< std::endl;
+
+    std::vector<std::string> var_names;
+    for(int i = 0; i < n_vars; i++)
+    {
+        var_names.push_back("var_" + std::to_string(i+1));
+        ASSERT_TRUE(logger->create(var_names[i], var_rows, 1, opt.default_buffer_size));
+    }
+
+    // calling manually the create method
+    // to avoid data loss due to the internally
+    // set buffer size
+
+    std::cout << "starting massive dump... \n";
+    for(int i = 0; i < var_cols; i++)
+    {
+        Eigen::VectorXd v;
+        v.setConstant(var_rows, i);
+
+        for(auto& vname : var_names)
+        {
+            ASSERT_TRUE(logger->add(vname, v));
+        }
+    }
+
+    std::cout << "calling destructor \n";
+    logger.reset();
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+
+
+
+
+
+

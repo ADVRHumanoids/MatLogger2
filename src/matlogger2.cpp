@@ -1,4 +1,4 @@
-#include <matlogger2/matlogger2.h>
+#include "matlogger2/matlogger2.h"
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
@@ -25,7 +25,7 @@ namespace
     }
 }
 
-class MatLogger2::MutexImpl
+class MATL2_LOCAL MatLogger2::MutexImpl
 {
 public:
     
@@ -46,7 +46,8 @@ const std::string& VariableBuffer::get_name() const
 
 XBot::MatLogger2::Options::Options():
     enable_compression(false),
-    default_buffer_size(1e4)
+    default_buffer_size(1e4),
+    default_buffer_size_max_bytes(10*1024*1024)  // 10MB
 {
 }
 
@@ -86,20 +87,32 @@ namespace{
 MatLogger2::MatLogger2(std::string file, Options opt):
     _file_name(file),
     _vars_mutex(new MutexImpl),
+    _matdata_queue_mutex(new MutexImpl),
     _buffer_mode(VariableBuffer::Mode::producer_consumer),
     _opt(opt)
 {
+
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Creating MatLogger2 object... \n" << std::endl;
+    #endif
+
     // get the file extension, or empty string if there is none
     std::string extension = get_file_extension(file);
     
-    if(extension == "") // no extension, append date/time + .mat
+    if(extension == "" && !_opt.load_file_from_path) // no extension and load mode disabled, append date/time + .mat
     {
-        _file_name += "__" + date_time_as_string() + ".mat";
+        static int counter = 0;
+        _file_name += "__" + std::to_string(counter++) + "_" +
+                      date_time_as_string() + ".mat";
+    }
+    else if(extension == "" && _opt.load_file_from_path) // no extension and load mode enabled, simply append .mat extension
+    {
+        _file_name += ".mat";
     }
     else if(extension != "mat") // extension different from .mat, error
     {
         throw std::invalid_argument("MAT-file name should either have .mat \
-extension, or no extension at all");
+        extension, or no extension at all");
     }
     
     // create mat file (erase if existing already)
@@ -109,11 +122,23 @@ extension, or no extension at all");
     {
         throw std::runtime_error("MatLogger2: unable to create backend");
     }
-    
-    if(!_backend->init(_file_name, _opt.enable_compression))
+
+    if (_opt.load_file_from_path) // try to load an already existing file
     {
-        throw std::runtime_error("MatLogger2: unable to initialize backend");
+        bool enable_write_access = true; // enable modification to the file
+        if(!_backend->load(_file_name, enable_write_access))
+        {
+            throw std::runtime_error("MatLogger2: failed to load mat file.\n  Check the correctness of the provided path and of the file name.");
+        }
     }
+    else // if no Options is provided, by default create a new file
+    {
+        if(!_backend->init(_file_name, _opt.enable_compression)) // init method will create a new mat file and will erase any preexisting one
+        {
+            throw std::runtime_error("MatLogger2: unable to initialize backend");
+        }
+    }
+    
 }
 
 const std::string& MatLogger2::get_filename() const
@@ -153,14 +178,33 @@ void XBot::MatLogger2::set_buffer_mode(VariableBuffer::Mode buffer_mode)
 
 bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buffer_size)
 {
-    if(buffer_size == -1)
+    if(rows == 0 || cols == 0)
     {
-        buffer_size = _opt.default_buffer_size;
+        fprintf(stderr, "variable '%s' created with invalid dimensions %d x %d\n", 
+                var_name.c_str(), rows, cols);
+        return false;
+    }
+
+    if(buffer_size == -1)
+    { // buffer size not provided
+        const int max_buf_size = _opt.default_buffer_size_max_bytes/sizeof(double)/rows/cols;
+
+        buffer_size = std::min(max_buf_size, _opt.default_buffer_size);
+#ifdef MATLOGGER2_VERBOSE
+        if(buffer_size != _opt.default_buffer_size)
+        {
+            fprintf(stderr, "MatLogger2::create -> warning: the default buffer size is %i, "
+                            "which is beyond the internally set threshold of %i. You may experience data loss.\n"
+                            "To prevent this, manually call the MatLogger2::create() method with the desired buffer "
+                            "size, before calling the MatLogger2::add() method.\n",
+                     _opt.default_buffer_size, max_buf_size);
+        }
+#endif
     }
     
     if(!(rows > 0 && cols > 0 && buffer_size > 0))
     {
-        fprintf(stderr, "Unable to create variable '%s': invalid parameters \
+        fprintf(stderr, "unable to create variable '%s': invalid parameters \
 (rows=%d, cols=%d, buf_size=%d)\n",
                 var_name.c_str(), rows, cols, buffer_size);
         return false;
@@ -173,7 +217,7 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     
     if(it != _vars.end())
     {
-        fprintf(stderr, "Variable '%s' already exists\n", var_name.c_str());
+        fprintf(stderr, "variable '%s' already exists\n", var_name.c_str());
         return false;
     }
     
@@ -181,8 +225,10 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     // queue
     int block_size = std::max(1, buffer_size / VariableBuffer::NumBlocks());
     
-    printf("Created variable '%s' (%d blocks, %d elem each)\n", 
+    #ifdef MATLOGGER2_VERBOSE
+    printf("created variable '%s' (%d blocks, %d elem each)\n", 
            var_name.c_str(), VariableBuffer::NumBlocks(), block_size);
+    #endif
     
     // insert VariableBuffer object inside the _vars map
     _vars.emplace(std::piecewise_construct,
@@ -199,6 +245,10 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
 
 bool MatLogger2::add(const std::string& var_name, double scalar)
 {
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Adding variable " << var_name << "\n" << std::endl;
+    #endif
+
     // turn scalar into a 1x1 matrix
     Eigen::Matrix<double, 1, 1> data(scalar);
     
@@ -207,9 +257,98 @@ bool MatLogger2::add(const std::string& var_name, double scalar)
     return vbuf && vbuf->add_elem(data);
 }
 
+bool MatLogger2::save(const std::string & var_name, const MatData & var_data)
+{
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Saving variable " << var_name << "\n" << std::endl;
+    #endif
+
+    std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
+    _matdata_queue.emplace(var_name, var_data);
+    return true;
+}
+
+bool MatLogger2::save(const std::string & var_name, MatData && var_data)
+{
+
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Saving variable " << var_name << "\n" << std::endl;
+    #endif
+
+    std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
+    _matdata_queue.emplace(var_name, var_data);
+    return true;
+}
+
+bool MatLogger2::readvar(const std::string& var_name, 
+                         Eigen::MatrixXd& mat_data,
+                         int& slices)
+{
+
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Reading variable " << var_name << "\n" << std::endl;
+    #endif
+
+    bool var_read_ok  = _backend->readvar(var_name.c_str(), mat_data, slices);
+
+    return var_read_ok;
+
+}
+
+bool MatLogger2::read_container(const std::string& var_name,
+                    matlogger2::MatData& matdata)
+{
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Reading container " << var_name << "\n" << std::endl;
+    #endif
+
+    bool var_read_ok  = _backend->read_container(var_name.c_str(), matdata);
+
+    return var_read_ok;
+}
+
+bool MatLogger2::delvar(const std::string& var_name)
+{
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Deleting variable " << var_name << "\n" << std::endl;
+    #endif
+
+    bool var_del_ok = _backend->delvar(var_name.c_str());
+
+    return var_del_ok;
+}
+
+bool MatLogger2::get_mat_var_names(std::vector<std::string>& var_names)
+{   
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Getting variables names \n" << std::endl;
+    #endif
+
+    bool get_var_names_ok = _backend->get_var_names(var_names);
+
+    return get_var_names_ok;
+}
 
 int MatLogger2::flush_available_data()
 {
+    // save matdata variables
+    {
+        std::lock_guard<MutexType> lock(_matdata_queue_mutex->get());
+
+        while(!_matdata_queue.empty())
+        {
+            auto matdata = std::move(_matdata_queue.front());
+            _matdata_queue.pop();
+
+            #ifdef MATLOGGER2_VERBOSE
+            std::cout <<  "\n Flushing matdata variable (writing container) " << matdata.first.c_str() << "\n" << std::endl;
+            #endif
+
+            _backend->write_container(matdata.first.c_str(), matdata.second);
+        }
+    }
+
+
     // number of flushed bytes is returned on exit
     int bytes = 0;
     
@@ -248,6 +387,11 @@ int MatLogger2::flush_available_data()
             }
         
             // write block
+
+            #ifdef MATLOGGER2_VERBOSE
+            std::cout <<  "\n Writing data of standard variable" << p.second.get_name().c_str() << " to file...\n" << std::endl;
+            #endif
+
             _backend->write(p.second.get_name().c_str(),
                             block.data(),
                             rows, cols, slices);
@@ -262,7 +406,7 @@ int MatLogger2::flush_available_data()
 
 XBot::VariableBuffer * XBot::MatLogger2::find_or_create(const std::string& var_name, 
                                                         int rows, int cols)
-{
+{    
     // try to find var_name
     auto it = _vars.find(var_name);
     
@@ -305,8 +449,13 @@ MatLogger2::~MatLogger2()
     set_on_data_available_callback(VariableBuffer::CallbackType());
     
     // set producer_consumer mode to be able to call read_block()
+
     set_buffer_mode(VariableBuffer::Mode::producer_consumer);
-    
+
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Destroying MatLogger2 instance and dumping data to file ...\n" << std::endl;
+    #endif
+
     // flush to queue and then flush to disk till all buffers are empty
     while(!flush_to_queue_all())
     {
@@ -315,58 +464,62 @@ MatLogger2::~MatLogger2()
     
     // flush to disk remaining data from queues
     while(flush_available_data() > 0);
-    
-    printf("Flushed all data for file '%s'\n", _file_name.c_str());
-    
+    #ifdef MATLOGGER2_VERBOSE
+    printf("\n Flushed all data for file '%s'\n", _file_name.c_str());
+    #endif
+
+    #ifdef MATLOGGER2_VERBOSE
+    std::cout <<  "\n Closing backend ...\n" << std::endl;
+    #endif
     _backend->close();
 }
 
 
 
-#define ADD_EXPLICIT_INSTANTIATION(EigenType) \
-template bool MatLogger2::add(const std::string&, const Eigen::MatrixBase<EigenType>&); \
-template bool VariableBuffer::add_elem(const Eigen::MatrixBase<EigenType>&); \
-template bool VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<EigenType>&);
+//#define ADD_EXPLICIT_INSTANTIATION(EigenType) \
+//template bool MatLogger2::add(const std::string&, const Eigen::MatrixBase<EigenType>&); \
+//template bool VariableBuffer::add_elem(const Eigen::MatrixBase<EigenType>&); \
+//template bool VariableBuffer::BufferBlock::add(const Eigen::MatrixBase<EigenType>&);
 
-#define ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(Scalar) \
-template bool MatLogger2::add(const std::string&, const std::vector<Scalar>&); \
+//#define ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(Scalar) \
+//template bool MatLogger2::add(const std::string&, const std::vector<Scalar>&); \
 
 
-template <typename Scalar>
-using Vector6 = Eigen::Matrix<Scalar,6,1>;
+//template <typename Scalar>
+//using Vector6 = Eigen::Matrix<Scalar,6,1>;
 
-template <typename Scalar>
-using MapX = Eigen::Map<Eigen::Matrix<Scalar, -1, 1>>;
+//template <typename Scalar>
+//using MapX = Eigen::Map<Eigen::Matrix<Scalar, -1, 1>>;
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXd)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXd)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4d)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXf)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::MatrixXf)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix2f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix3f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Matrix4f)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXd)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3d)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4d)
-ADD_EXPLICIT_INSTANTIATION(Vector6<double>)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXd)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3d)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4d)
+//ADD_EXPLICIT_INSTANTIATION(Vector6<double>)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXf)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3f)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4f)
-ADD_EXPLICIT_INSTANTIATION(Vector6<float>)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXf)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3f)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4f)
+//ADD_EXPLICIT_INSTANTIATION(Vector6<float>)
 
-ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXi)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2i)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3i)
-ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4i)
-ADD_EXPLICIT_INSTANTIATION(Vector6<int>)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::VectorXi)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector2i)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector3i)
+//ADD_EXPLICIT_INSTANTIATION(Eigen::Vector4i)
+//ADD_EXPLICIT_INSTANTIATION(Vector6<int>)
 
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(int)
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(unsigned int)
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(float)
-ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(double)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(int)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(unsigned int)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(float)
+//ADD_EXPLICIT_INSTANTIATION_STD_VECTOR(double)

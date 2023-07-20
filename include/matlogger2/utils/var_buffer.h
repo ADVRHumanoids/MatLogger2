@@ -6,6 +6,8 @@
 
 #include <Eigen/Dense>
 
+#include "matlogger2/utils/visibility.h"
+
 namespace XBot 
 {
 
@@ -29,7 +31,7 @@ namespace XBot
     * concurrently.
     * 
     */
-    class VariableBuffer 
+    class MATL2_API VariableBuffer
     {
     
     public:

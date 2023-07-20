@@ -2,7 +2,7 @@
 #define __XBOT_MATLOGGER2_APPENDER_H__
 
 #include <memory>
-
+#include "matlogger2/utils/visibility.h"
 
 namespace XBot 
 {
@@ -21,7 +21,7 @@ namespace XBot
     * Then, either call flush_available_data() in a loop, or call 
     * start_flush_thread().
     */
-    class MatAppender : public std::enable_shared_from_this<MatAppender>
+    class MATL2_API MatAppender : public std::enable_shared_from_this<MatAppender>
     {
         
     public:
@@ -68,11 +68,11 @@ namespace XBot
     private:
 
         
-        MatAppender();
+        MATL2_LOCAL MatAppender();
         
-        struct Impl;
+        struct MATL2_LOCAL Impl;
         
-        Impl& impl();
+        MATL2_LOCAL Impl& impl();
         
         std::unique_ptr<Impl> _impl;
         

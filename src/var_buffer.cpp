@@ -1,4 +1,4 @@
-#include <matlogger2/utils/var_buffer.h>
+#include "matlogger2/utils/var_buffer.h"
 
 #include "boost/spsc_queue_logger.hpp"
 #include <vector>
@@ -77,7 +77,7 @@ public:
     /**
      * @brief Get a new block from the pool, if available
      * 
-     * @return a shared pointer to a block, or a nullptr if non is available
+     * @return a shared pointer to a block, or a nullptr if none is available
      */
     BufferBlock::Ptr get_new_block()
     {
@@ -167,7 +167,7 @@ bool XBot::VariableBuffer::read_block(Eigen::MatrixXd& data, int& valid_elements
 {
     if(_buffer_mode == Mode::circular_buffer)
     {
-        throw std::logic_error("Cannot call read_block() when in circular_buffer mode!");
+        throw std::logic_error("cannot call read_block() when in circular_buffer mode!");
     }
     
     // this function is not allowed to use class members, 
@@ -224,14 +224,16 @@ bool VariableBuffer::flush_to_queue()
             if(!_queue->get_read_queue().pop(new_block)) 
             {
                 // should never be called
-                throw std::logic_error("Failed to pop a new block for variable '" + _name + "'");
+                throw std::logic_error("failed to pop a new block for variable '" + _name + "'");
             }
             
         }
         else // producer-consumer mode
         {
             // in this case we can't do anything but keep writing on the current block
-            fprintf(stderr, "Failed to get new block for variable '%s'\n", _name.c_str());
+            #ifdef MATLOGGER2_VERBOSE
+            fprintf(stderr, "failed to get new block for variable '%s'\n", _name.c_str());
+            #endif
             return false;
         }
     }
@@ -243,7 +245,7 @@ bool VariableBuffer::flush_to_queue()
     if(!push_to_queue_success)
     {
         // should never be called
-        throw std::logic_error("Failed to push current block for variable '" + _name + "'");
+        throw std::logic_error("failed to push current block for variable '" + _name + "'");
     }
     
     // we managed to push a block into the queue

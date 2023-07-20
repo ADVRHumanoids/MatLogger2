@@ -1,0 +1,144 @@
+@c Copyright (c) 2015-2022, The matio contributors
+@c Copyright (c) 2012-2014, Christopher C. Hulbert
+@c All rights reserved.
+@c
+@c Redistribution and use in source and binary forms, with or without
+@c modification, are permitted provided that the following conditions are met:
+@c
+@c 1. Redistributions of source code must retain the above copyright notice, this
+@c    list of conditions and the following disclaimer.
+@c
+@c 2. Redistributions in binary form must reproduce the above copyright notice,
+@c    this list of conditions and the following disclaimer in the documentation
+@c    and/or other materials provided with the distribution.
+@c
+@c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+@c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+@c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+@c DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+@c FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+@c DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+@c SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+@c CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+@c OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+@c OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@chapter Building matio
+@section Quick Build Guide
+The primary method for building the software is using @code{configure} followed
+by @code{make}. After building, the testsuite can be executed to test the
+software using @code{make check} (See @ref{Testsuite}. The software can be
+installed using 'make install'. For example,
+
+@verbatim
+                $ tar zxf matio-X.Y.Z.tar.gz
+                $ cd matio-X.Y.Z
+                $ ./configure
+                $ make
+                $ make check
+                $ make install
+@end verbatim
+
+@section Configure Options
+@table @code
+@item --enable-mat73=[yes|no]
+This flag enables/disables the support for version 7.3 MAT files. The option
+only makes sense if built with HDF5 as support for version 7.3 files will be
+disabled if HDF5 is not available.
+@item --enable-extended-sparse=yes
+Enable extended sparse matrix data types not supported in MATLAB. MATLAB only
+supports double-precision sparse data. With this flag, matio will read sparse
+data with other types (i.e. single-precision and integer types).
+@item --with-matlab=DIR
+This option specifies the directory (DIR) with the @code{matlab} program. With
+this option, the testsuite will check that the MAT files written by matio can be
+read into MATLAB (see Section @ref{Testsuite} for more information about the
+testsuite).
+@item --with-zlib=DIR
+This option specifies the prefix where zlib is installed.
+@item --with-hdf5=DIR
+This option specifies the prefix where the HDF5 software is installed.
+@item --with-default-file-ver=[4|5|7.3]
+This option sets the default MAT file version that will be used when writing.
+The default file version is used by the Mat_Create macro and the
+Mat_CreateVer function when MAT_FT_DEFAULT is used for the version argument.
+@item --with-libdir-suffix=suffix
+This option specifies a suffix to apply to library directories when installing
+and looking for dependent libraries (i.e. HDF5 and zlib). For example, some
+multi-arch Linux distributions install 64-bit libraries into lib64 and 32-bit
+libraries into lib.
+@end table
+
+@section CMake build system
+The CMake build system is supported as an alternative build system,
+which usually consists of three steps for configuration, build and
+installation, for example,
+
+@verbatim
+                $ tar zxf matio-X.Y.Z.tar.gz
+                $ cd matio-X.Y.Z
+                $ cmake .
+                $ cmake --build .
+                $ cmake --install .
+@end verbatim
+
+The following matio specific options for building with CMake are
+available.
+@table @code
+@item MATIO_USE_CONAN:BOOL=OFF
+This option enables the Conan package manager to resolve the library
+dependencies.
+@item MATIO_DEFAULT_FILE_VERSION:STRING=5
+This option sets the default MAT file version (4,5,7.3) that
+will be used when writing.
+@item MATIO_EXTENDED_SPARSE:BOOL=ON
+This option enables extended sparse matrix data types not
+supported in MATLAB.
+@item MATIO_MAT73:BOOL=ON
+This flag enables the support for version 7.3 MAT files.
+@item MATIO_PIC:BOOL=ON
+This option enables position-independent code (PIC),
+i.e., compilation with the @code{-fPIC} flag. It is ignored for
+Visual Studio builds.
+@item MATIO_SHARED:BOOL=ON
+This option builds the matio library as shared object
+(i.e., a dynamic link library on Windows).
+@item MATIO_WITH_HDF5:BOOL=ON
+This option enables CMake to check for availability of the
+HDF5 library (see section 2.1.2 for information about HDF5).
+@item MATIO_WITH_ZLIB:BOOL=ON
+This option enables CMake to check for availability of the
+zlib library (see section 2.1.1 for information about zlib).
+@end table
+
+To help CMake find the HDF5 libraries, set environment variable
+HDF5_DIR to the @emph{cmake/hdf5} directory (containing
+@emph{hdf5-config.cmake}) inside the HDF5 build or installation directory, or
+call cmake with
+@code{-DHDF5_DIR="dir/to/hdf5/cmake/hdf5}. Alternatively call CMake with
+@code{-DCMAKE_PREFIX_PATH="dir/to/hdf5/cmake"}. See the HDF5 instructions
+for more information. Using @emph{hdf5-config.cmake} is recommended over
+using CMake's built-in @emph{FindHDF5}, especially for static builds.
+CMake 3.10 or later is recommended.
+
+@section Visual Studio
+A visual studio solution is provided as visual_studio/matio.sln. The solution is
+set up to build a DLL of the matio library (@emph{libmatio.dll}) and
+@emph{matdump} tool in release mode and assumes HDF5 is available in the
+directory specified by the HDF5_DIR environment variable. The build was tested
+with the HDF5 visual studio pre-built Windows binaries including zlib.
+
+@node Testsuite
+@section Testsuite
+A testsuite is available when building with the GNU autotools. To run the
+testsuite, First configure and build matio. After building run @code{make check}
+to run the testsuite. If matio was built without zlib, the compressed variable
+tests will be skipped. If built without HDF5, the tests for version 7.3 MAT
+files will be skipped. If the path to the MATLAB application was not specified
+(@code{--with-matlab}), the write tests will fail if matio cannot read the file
+and skip if matio can read the file. The write tests will pass if MATLAB is
+available and can also read the file.
+
+To report matio testsuite failures, compress the testsuite.log file in the test
+sub-directory of the build directory. Upload the compressed log file along with
+a bug report (see Section 1.4 for information on reporting bugs).

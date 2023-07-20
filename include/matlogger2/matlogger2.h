@@ -5,22 +5,24 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <queue>
 #include <Eigen/Dense>
 
-#include <matlogger2/utils/var_buffer.h>
+#include "matlogger2/utils/var_buffer.h"
+#include "matlogger2/mat_data.h"
 
-
+#include "matlogger2/utils/visibility.h"
 
 namespace XBot 
 {
     namespace matlogger2 
     {
-        class Backend;
+        class MATL2_API Backend;
     }
 
     /**
     * @brief The MatLogger2 class allows the user to save numeric variables
-    * (scalars, vectors, matrices) to HDF5 MAT-files. 
+    * (scalars, vectors, matrices), structures and cell arrays to HDF5 MAT-files. 
     * 
     * Output formatting: 
     *  - scalars are appended to form a column vector
@@ -33,8 +35,8 @@ namespace XBot
     * e.g. MatLogger2(std::string filename).
     * 
     * Usage: 
-    * variables are created via the create() method. 
-    * Elements are added to a variable with the add() method. 
+    * Standard numeric variables(scalars, vectors and matrices) are created via the create() method. 
+    * Standard numeric elements are added to a variable with the add() method, while structures and arrays with the create() one. 
     * Different overloads are provided for Eigen3 types, std::vector,
     * and scalars. 
     * Such elements are stored inside an internal buffer, which can be flushed 
@@ -63,7 +65,7 @@ namespace XBot
     * multi-threaded environment (i.e. additional synchronization must be provided
     * by the user)
     */
-    class MatLogger2 
+    class MATL2_API MatLogger2
     {
         
     public:
@@ -73,10 +75,12 @@ namespace XBot
         typedef std::shared_ptr<MatLogger2> Ptr;
         typedef std::unique_ptr<MatLogger2> UniquePtr;
         
-        struct Options
+        struct MATL2_API Options
         {
-            bool enable_compression;
+            bool enable_compression = false;
+            bool load_file_from_path = false; // option to load an already existing mat file, instead of creating it
             int default_buffer_size;
+            int default_buffer_size_max_bytes;
             
             Options();
         };
@@ -151,7 +155,23 @@ namespace XBot
         bool add(const std::string& var_name, Iterator begin, Iterator end);
         
         bool add(const std::string& var_name, double data);
+
+        bool save(const std::string& var_name,
+                  const matlogger2::MatData& var_data);
+
+        bool save(const std::string& var_name,
+                  matlogger2::MatData&& var_data);
         
+        bool readvar(const std::string& var_name, 
+                     Eigen::MatrixXd& mat_data,
+                     int& slices);
+
+        bool read_container(const std::string& var_name, matlogger2::MatData& matdata); // double scalar types are automatically casted to MatrixXd upon reading (MatIO does not distinguish between matrices and scalars)
+
+        bool delvar(const std::string& var_name);
+
+        bool get_mat_var_names(std::vector<std::string>& var_names);
+
         /**
         * @brief Flush available data to disk.
         * 
@@ -182,13 +202,13 @@ namespace XBot
         * 
         * @return True if all variables succeed
         */
-        bool flush_to_queue_all();
+        MATL2_LOCAL bool flush_to_queue_all();
         
         /**
         * @brief Return a pointer to the requested variable. If it does 
         * not exist, it tries to create one with the provided dimentions.
         */
-        VariableBuffer * find_or_create(const std::string& var_name,    
+        VariableBuffer * find_or_create(const std::string& var_name,
                                         int rows, int cols
                                         );
         
@@ -200,7 +220,7 @@ namespace XBot
         // producer must hold it during create(), and 
         // set_on_data_available_callback()
         // consumer must hold it during flush_available_data()
-        class MutexImpl;
+        class MATL2_LOCAL MutexImpl;
         std::unique_ptr<MutexImpl> _vars_mutex;
         
         // map of all defined variables 
@@ -217,12 +237,12 @@ namespace XBot
         
         // handle to backend object
         std::unique_ptr<matlogger2::Backend> _backend;
-        
+
+        std::unique_ptr<MutexImpl> _matdata_queue_mutex;
+        std::queue<std::pair<std::string, matlogger2::MatData>> _matdata_queue;
         
     };
     
-
-
 }
 
 template <typename... Args>
