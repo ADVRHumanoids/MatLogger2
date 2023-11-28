@@ -243,6 +243,13 @@ bool MatLogger2::create(const std::string& var_name, int rows, int cols, int buf
     return true;
 }
 
+bool MatLogger2::add(const std::string &var_name, const Eigen::Affine3d &data)
+{
+    bool ok = add(var_name + "_t", data.translation());
+    ok = add(var_name + "_q", Eigen::Quaterniond(data.linear()).coeffs()) && ok;
+    return ok;
+}
+
 bool MatLogger2::add(const std::string& var_name, double scalar)
 {
     #ifdef MATLOGGER2_VERBOSE
