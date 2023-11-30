@@ -71,11 +71,21 @@ bool MatioBackend::init(std::string logger_name,
         }
     }
 
+    // by default, save to mat 7.3 version
+    mat_ft mat_ver = MAT_FT_MAT73;
+
+    if(getenv("MATLOGGER_2_USE_MAT5"))
+    {
+        mat_ver = MAT_FT_MAT5;
+    }
+
+    // create file
     _mat_file = Mat_CreateVer(logger_name.c_str(),
                               nullptr,
-                              MAT_FT_MAT73); // by default, save to mat 7.3 version
+                              mat_ver);
 
-    if ( _mat_file == NULL ) { // check if mat file object is empty
+    // check if mat file object is empty
+    if(_mat_file == NULL) {
 
         fprintf(stderr, "MatioBackend::init: Failed to create mat file.\n");
 

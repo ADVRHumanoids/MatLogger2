@@ -146,6 +146,8 @@ namespace XBot
         
         template <typename Derived>
         bool add(const std::string& var_name, const Eigen::MatrixBase<Derived>& data);
+
+        bool add(const std::string& var_name, const Eigen::Affine3d& data);
         
         template <typename Scalar>
         bool add(const std::string& var_name, const std::vector<Scalar>& data);
