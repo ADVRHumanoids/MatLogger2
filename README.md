@@ -36,7 +36,7 @@ mkdir <BUILD_DIR>
 cd <BUILD_DIR> && cmake <PATH_TO_SOURCE_DIR>
 ```
 
-- Install MatLogger2 (BUILD_DIR)
+- Install MatLogger2
 ```shell
 make install
 ```
