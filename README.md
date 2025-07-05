@@ -2,12 +2,44 @@
 Library for logging of numeric data to HDF5 MAT-files, which is RT-safe and multithreaded.
 
 ## Building MatLogger2 from source
-Standard cmake workflow:
+### Dependencies:
+Installation for Ubuntu Linux:
+```shell
+sudo apt update
+sudo apt install build-essential \
+    cmake \
+    git \
+    libeigen3-dev \
+    libboost-all-dev \
+    libhdf5-serial-dev \
+    pybind11-dev \
+    python3-distutils-extra \
+    lsb-release
+```
+
+### Standard cmake workflow:
  - git clone the repo to *SOURCE_DIR*
  - create a build folder *BUILD_DIR*
  - cd *BUILD_DIR* && cmake *SOURCE_DIR*
  - make
  - make install
+
+### Analytical steps:
+- Clone the repository to a target source directory (SOURCE_DIR):
+```shell
+git clone https://github.com/ADVRHumanoids/MatLogger2.git <SOURCE_DIR>
+```
+
+- Create a build directory (BUILD_DIR) and compile the source code:
+```shell
+mkdir <BUILD_DIR>
+cd <BUILD_DIR> && cmake <PATH_TO_SOURCE_DIR>
+```
+
+- Install MatLogger2 (BUILD_DIR)
+```shell
+make install
+```
 
 ## Installing the binary release
   - go to [GitHub release page](https://github.com/ADVRHumanoids/MatLogger2/releases) and download the latest binary
