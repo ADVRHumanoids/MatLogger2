@@ -8,7 +8,7 @@ export HHCM_FOREST_CLONE_DEFAULT_PROTO=https
 source env/bin/activate
 
 # create ws and source it
-sudo chown user:user test_ws
+sudo chown user:user test_ws test_ws/src
 mkdir -p test_ws && cd test_ws
 forest init
 
