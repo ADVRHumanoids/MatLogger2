@@ -1,3 +1,5 @@
+[![Build and Test (Noble-ROS2)](https://github.com/ADVRHumanoids/MatLogger2/actions/workflows/build-and-test-ros2-noble.yml/badge.svg)](https://github.com/ADVRHumanoids/MatLogger2/actions/workflows/build-and-test-ros2-noble.yml)
+
 # MatLogger2
 Library for logging of numeric data to HDF5 MAT-files, which is RT-safe and multithreaded.
 
