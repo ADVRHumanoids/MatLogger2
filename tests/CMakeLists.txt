@@ -3,7 +3,9 @@ include(ExternalProject)
 
 project(matlogger2_tests LANGUAGES C CXX VERSION 1.0.0)
 
-add_compile_options("-std=c++14")
+# Current GoogleTest requires C++17.
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # add_compile_options("-fsanitize=thread")
 
 # compite GTest
@@ -30,6 +32,11 @@ add_executable(TestApi TestApi.cpp)
 add_executable(ProfileTest profile_test.cpp)
 add_executable(BackendTest BackendTest.cpp)
 add_executable(ReadTests ReadTests.cpp)
+add_executable(SpscQueueTest SpscQueueTest.cpp)
+target_compile_options(SpscQueueTest PRIVATE -UNDEBUG)
+target_link_libraries(SpscQueueTest ${TestLibs})
+add_dependencies(SpscQueueTest ${GTEST_EXT_TARGET} matlogger2)
+add_test(NAME SpscQueueTest COMMAND SpscQueueTest)
 
 target_link_libraries(TestApi ${TestLibs}) # -fsanitize=thread)
 target_link_libraries(ProfileTest matlogger2 -lpthread)

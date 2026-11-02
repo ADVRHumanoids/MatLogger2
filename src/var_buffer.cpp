@@ -1,6 +1,6 @@
 #include "matlogger2/utils/var_buffer.h"
 
-#include "boost/spsc_queue_logger.hpp"
+#include <matlogger2/utils/spsc_queue.h>
 #include <vector>
 
 using namespace XBot;
@@ -39,8 +39,6 @@ void VariableBuffer::BufferBlock::reset()
     _write_idx = 0;
 }
 
-namespace lf = boost::lockfree;
-
 /**
  * @brief The QueueImpl class implements the buffering strategy
  * for a single logged variable. This consists of:
@@ -58,7 +56,7 @@ public:
     static const int NUM_BLOCKS = 20;
     
     template <typename T>
-    using LockfreeQueue = lf::spsc_queue<T, lf::capacity<NUM_BLOCKS>>;
+    using LockfreeQueue = detail::SpscQueue<T, NUM_BLOCKS>;
     
     QueueImpl(int elem_size, int buffer_size)
     {
@@ -68,9 +66,7 @@ public:
             _block_pool.push_back(std::make_shared<BufferBlock>(elem_size, buffer_size));
         }
         
-        // pre allocate queues
-        _read_queue.reset(BufferBlock::Ptr());
-        _write_queue.reset(BufferBlock::Ptr());
+        // Queue slots are preconstructed and remain alive until queue teardown.
     }
     
     
