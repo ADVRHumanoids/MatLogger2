@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
+set(PYBIND11_FINDPYTHON ON)
+find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 find_package(pybind11 QUIET)
 
 add_compile_options(-std=c++14)
@@ -14,9 +16,7 @@ if(${pybind11_FOUND})
     
     # get python install path 
     execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "if True:
-            from distutils import sysconfig as sc
-            print(sc.get_python_lib(prefix='', plat_specific=True))"
+        COMMAND ${Python_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_path('platlib', scheme='posix_prefix', vars={'base': '', 'platbase': ''}).lstrip('/'))"
         OUTPUT_VARIABLE PYTHON_SITE
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     message(STATUS "Python install dir: ${PYTHON_SITE}")
